@@ -96,6 +96,15 @@ textarea#src::placeholder{color:var(--ink-3)}
 
 .mono{font-variant-numeric:tabular-nums}
 
+/* итог под черновиком */
+.st{border-radius:10px;padding:11px 14px;font-size:13.5px;display:flex;flex-direction:column;gap:4px}
+.st.ok{background:var(--ok-soft);color:var(--ok)}
+.st.bad{background:var(--crit-soft);color:var(--crit)}
+.st b{font-size:14px}
+.st span{color:var(--ink-2)}
+.st ul{margin:2px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.st li{color:var(--ink-2)}
+
 /* переключатель способа ввода */
 .seg{display:inline-flex;gap:2px;padding:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px}
 .seg-b{border:0;background:transparent;color:var(--ink-2);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:500}
@@ -113,16 +122,22 @@ textarea#free::placeholder{color:var(--ink-3)}
 /* шкала нагрузки */
 .tl-scroll{overflow-x:auto;padding-bottom:4px}
 .tl{min-width:620px;display:flex;flex-direction:column;gap:4px}
-.tl-head,.tl-row{display:grid;grid-template-columns:92px 52px 1fr;gap:10px;align-items:center}
+.tl-head,.tl-row{display:grid;grid-template-columns:158px 1fr;gap:0;align-items:center}
+/* кличка и часы не уезжают при горизонтальной прокрутке */
+.tl-fix{
+  position:sticky;left:0;z-index:2;background:var(--surface);
+  display:flex;align-items:center;gap:8px;width:158px;padding-right:10px;
+  border-right:1px solid var(--line-soft);margin-right:10px;
+}
 .tl-ticks{position:relative;height:14px}
 .tl-tick{position:absolute;top:0;font-size:10.5px;color:var(--ink-3);transform:translateX(-50%)}
-.tl-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .tl-track{position:relative;height:22px;background:var(--surface-2);border:1px solid var(--line-soft);border-radius:6px;overflow:hidden}
 .tl-grid{position:absolute;inset:0}
 .tl-grid i{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
 .tl-blk{position:absolute;top:3px;bottom:3px;background:var(--bar);border-radius:4px}
 .tl-blk.bad{background:var(--crit)}
-.tl-sum{font-size:12.5px;color:var(--ink-2)}
+.tl-sum{font-size:12.5px;color:var(--ink-2);white-space:nowrap;flex:none}
 .tl-sum.bad{color:var(--crit);font-weight:600}
 .tl-sum.edge{color:var(--warn);font-weight:600}
 .tl-row.free .tl-name,.tl-row.free .tl-sum{color:var(--ink-3)}
@@ -147,7 +162,7 @@ textarea#free::placeholder{color:var(--ink-3)}
   font:inherit;font-size:13px;padding:3px 8px;border-radius:8px;
   border:1px solid var(--line);color:var(--ink);background:var(--surface-2);max-width:150px;cursor:pointer;
 }
-.hsel.add{border-style:dashed;color:var(--ink-3);background:transparent}
+.hsel.add{border-style:dashed;color:var(--ink-3);background:transparent;width:auto;min-width:0;padding:3px 6px;text-align:center}
 .hsel:hover{border-color:var(--ink-3)}
 .dur{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:3px 6px;font-size:12.5px;max-width:210px;color:var(--ink-2)}
 .rec.bad{background:var(--crit-soft);border-left:3px solid var(--crit);border-radius:8px;padding:11px 12px;margin:4px 0;border-bottom-color:transparent}
@@ -186,7 +201,6 @@ details.dict[open] summary::after{content:"▴"}
   .wrap{padding:16px 12px 48px}
   .rec{padding:9px 0}
   .rec-main{gap:4px}
-  .hsel.add{width:46px;padding:3px 2px;text-indent:-2px}
   .dur{max-width:150px}
   .card-h{padding:14px 16px 0}
   .card-b{padding:12px 16px 16px}
@@ -208,6 +222,7 @@ details.dict[open] summary::after{content:"▴"}
         <button class="btn" id="go">Проверить</button>
         <button class="btn ghost" id="clear">Очистить</button>
       </div>
+      <div id="status"></div>
     </div>
   </section>
 
@@ -758,13 +773,15 @@ function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt
 /* тип занятия и оплата одной плашкой */
 function typeBadge(r){
   const pay = r.pay.join(' ');
+  const trainers = [...new Set([...r.trainersEarly, ...r.trainersLate])].join(', ');
   let cls = '', text;
   if (/^exc|clean/.test(r.kind)){ cls = 'exc'; text = 'Экскурсия'; }
   else if (r.kind === 'walk'){ text = 'Прогулка'; }
   else if (/аб/.test(pay)){ cls = 'ab'; text = 'Абонемент'; }
   else if (/серт/.test(pay)){ text = 'Сертификат'; }
+  else if (/оплачен/.test(pay)){ cls = 'raz'; text = 'Оплачено'; }
   else if (/\d/.test(pay)){ cls = 'raz'; text = 'Разовое'; }
-  else text = 'Занятие';
+  else text = trainers || 'Занятие';   // оплаты нет - ставим имя тренера
   const money = (pay.match(/\d[\d\s]*\s*₽/) || [''])[0];
   return '<span class="badge ' + cls + '">' + text + '</span>' + (money ? '<span class="sum">' + esc(money) + '</span>' : '');
 }
@@ -772,7 +789,7 @@ function typeBadge(r){
 /* выпадающий список лошадей в записи; idx = -1 - это «добавить ещё» */
 function horseSelect(rec, idx){
   const cur = idx >= 0 ? rec.horses[idx].name : '';
-  let o = idx < 0 ? '<option value="">+ лошадь</option>' : '';
+  let o = idx < 0 ? '<option value="">+</option>' : '';
   HORSES.forEach(h => {
     o += '<option value="' + esc(h.name) + '"' + (h.name === cur ? ' selected' : '') + '>' + esc(h.name) + (h.group ? ' *' : '') + '</option>';
   });
@@ -785,6 +802,20 @@ function render(notes){
   const { violations, hmap, said } = check(RECS);
   const badIds = new Set();
   violations.forEach(v => v.ids.forEach(id => badIds.add(id)));
+
+  // итог сразу под черновиком: сходится или нет, и что именно
+  const st = document.getElementById('status');
+  const flagged = RECS.filter(r => r.flags.length);
+  if (!RECS.length) st.innerHTML = '';
+  else if (violations.length){
+    const seen = new Set();
+    const items = violations.filter(v => { const k = v.title + v.body; if (seen.has(k)) return false; seen.add(k); return true; })
+      .map(v => '<li>' + esc(v.title) + ' - ' + v.body.replace(/<\/?b>/g, '') + '</li>').join('');
+    st.innerHTML = '<div class="st bad"><b>' + (violations.length === 1 ? 'Ошибка' : 'Ошибки') + '</b><ul>' + items + '</ul></div>';
+  } else {
+    st.innerHTML = '<div class="st ok"><b>Без ошибок</b><span>Записей ' + RECS.length +
+      (flagged.length ? ', но ' + flagged.length + ' стоит проверить глазами' : ', конфликтов нет') + '</span></div>';
+  }
 
   // строки, которые не стали занятиями
   const ncard = document.getElementById('ncard');
@@ -806,7 +837,7 @@ function render(notes){
   for (let t = DAY_FROM; t <= DAY_TO; t += 60) ticks += '<span class="tl-tick" style="left:' + pct(t) + '%">' + fmt(t).slice(0, 2) + '</span>';
   let grid = '';
   for (let t = DAY_FROM; t <= DAY_TO; t += 60) grid += '<i style="left:' + pct(t) + '%"></i>';
-  let rows = '<div class="tl-head"><span></span><span></span><div class="tl-ticks">' + ticks + '</div></div>';
+  let rows = '<div class="tl-head"><div class="tl-fix"></div><div class="tl-ticks">' + ticks + '</div></div>';
   names.forEach(n => {
     const ivs = hmap[n] || [];
     const blocks = merge(ivs);
@@ -817,8 +848,9 @@ function render(notes){
       const long = (b.to - b.from) > 120;
       bl += '<span class="tl-blk' + (long ? ' bad' : '') + '" style="left:' + pct(b.from) + '%;width:' + ((b.to - b.from) / span * 100) + '%" title="' + fmt(b.from) + '-' + fmt(b.to) + '"></span>';
     });
-    rows += '<div class="tl-row' + (total ? '' : ' free') + '"><span class="tl-name">' + esc(n) + '</span>' +
-      '<span class="tl-sum ' + (bad ? 'bad' : total === 240 ? 'edge' : '') + '">' + (total ? hrs(total) : 'свободна') + '</span>' +
+    rows += '<div class="tl-row' + (total ? '' : ' free') + '">' +
+      '<div class="tl-fix"><span class="tl-name">' + esc(n) + '</span>' +
+        '<span class="tl-sum ' + (bad ? 'bad' : total === 240 ? 'edge' : '') + '">' + (total ? hrs(total) : 'свободна') + '</span></div>' +
       '<div class="tl-track"><div class="tl-grid">' + grid + '</div>' + bl + '</div></div>';
   });
   tl.innerHTML = rows;
@@ -841,8 +873,7 @@ function render(notes){
         r.horses.map((x, i) => horseSelect(r, i)).join('') + horseSelect(r, -1) +
         '<span class="tname">' + esc([...new Set([...r.trainersEarly, ...r.trainersLate])].join(', ')) + '</span>' +
       '</div>' +
-      '<div class="rec-line"><select class="dur" data-id="' + r.id + '">' + opts + '</select>' +
-        '<span class="hint mono">' + fmt(r.start) + '-' + fmt(r.start + r.dur) + (r.hDur ? ' - лошадь ' + fmt(r.start + r.hOff) + '-' + fmt(r.start + r.hOff + r.hDur) : ' - лошадь не занята') + '</span></div>' +
+      '<div class="rec-line"><select class="dur" data-id="' + r.id + '">' + opts + '</select></div>' +
       ((said.get(r.id) || []).map(m => '<div class="rec-bad">' + esc(m) + '</div>').join('')) +
       (r.flags.length ? '<div class="rec-note">' + r.flags.map(esc).join(', ') + '</div>' : '') +
       (r.info && r.info.length ? '<div class="rec-info">' + r.info.map(esc).join(', ') + '</div>' : '') +
@@ -1079,19 +1110,50 @@ function setMode(free){
 document.getElementById('m-free').addEventListener('click', () => setMode(true));
 document.getElementById('m-form').addEventListener('click', () => setMode(false));
 
+/* копируем строго как простой текст: иначе телеграм склеивает строки */
+function copyPlain(text){
+  return new Promise(resolve => {
+    const viaTextarea = () => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;padding:0;border:0;font-size:16px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.setSelectionRange(0, ta.value.length);          // iOS понимает только так
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e){}
+      ta.remove();
+      resolve(ok);
+    };
+    try {
+      if (navigator.clipboard && window.ClipboardItem){
+        navigator.clipboard.write([new ClipboardItem({ 'text/plain': new Blob([text], { type: 'text/plain' }) })])
+          .then(() => resolve(true)).catch(() => {
+            navigator.clipboard.writeText(text).then(() => resolve(true)).catch(viaTextarea);
+          });
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(() => resolve(true)).catch(viaTextarea);
+        return;
+      }
+    } catch (e){}
+    viaTextarea();
+  });
+}
+
 document.getElementById('copy').addEventListener('click', async () => {
   const text = exportText(NOTES), msg = document.getElementById('copymsg');
-  let ok = false;
-  try { await navigator.clipboard.writeText(text); ok = true; }
-  catch (e){
+  const ok = await copyPlain(text);
+  msg.textContent = ok ? 'Скопировано' : 'Не вышло, текст ниже';
+  if (!ok){
+    const box = document.getElementById('recs');
     const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
-    document.body.appendChild(ta); ta.select();
-    try { ok = document.execCommand('copy'); } catch (e2){}
-    ta.remove();
+    ta.value = text; ta.readOnly = true; ta.id = 'src';
+    ta.style.cssText = 'margin-bottom:12px';
+    box.prepend(ta);
   }
-  msg.textContent = ok ? 'Скопировано' : 'Не вышло, скопируйте вручную';
   setTimeout(() => msg.textContent = '', 2500);
 });
 
