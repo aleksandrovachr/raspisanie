@@ -1,0 +1,1194 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F4F4F5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#09090B" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Расписание">
+<title>Проверка расписания</title>
+</head>
+<body>
+<style>
+:root{
+  --ground:#F4F4F5;
+  --surface:#FFFFFF;
+  --surface-2:#FAFAFA;
+  --line:#E4E4E7;
+  --line-soft:#F1F1F3;
+  --ink:#18181B;
+  --ink-2:#52525B;
+  --ink-3:#A1A1AA;
+  --accent:#18181B;
+  --accent-ink:#FFFFFF;
+  --bar:#52525B;
+  --crit:#B42318; --crit-soft:#FEF3F2; --crit-line:#FECDCA;
+  --warn:#B54708; --warn-soft:#FFFAEB; --warn-line:#FEDF89;
+  --ok:#067647;  --ok-soft:#ECFDF3;
+  --blue:#175CD3; --blue-soft:#EFF8FF;
+  --shadow:0 1px 2px rgba(16,24,40,.05);
+  --r:14px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#09090B; --surface:#18181B; --surface-2:#1F1F23;
+    --line:#2A2A2E; --line-soft:#232327;
+    --ink:#FAFAFA; --ink-2:#A1A1AA; --ink-3:#71717A;
+    --accent:#FAFAFA; --accent-ink:#18181B; --bar:#A1A1AA;
+    --crit:#FDA29B; --crit-soft:#2A1512; --crit-line:#4A211C;
+    --warn:#FEC84B; --warn-soft:#2A1F0B; --warn-line:#4A3813;
+    --ok:#75E0A7;  --ok-soft:#0E2A1C;
+    --blue:#84CAFF; --blue-soft:#10243A;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#09090B; --surface:#18181B; --surface-2:#1F1F23;
+  --line:#2A2A2E; --line-soft:#232327;
+  --ink:#FAFAFA; --ink-2:#A1A1AA; --ink-3:#71717A;
+  --accent:#FAFAFA; --accent-ink:#18181B; --bar:#A1A1AA;
+  --crit:#FDA29B; --crit-soft:#2A1512; --crit-line:#4A211C;
+  --warn:#FEC84B; --warn-soft:#2A1F0B; --warn-line:#4A3813;
+  --ok:#75E0A7;  --ok-soft:#0E2A1C;
+  --blue:#84CAFF; --blue-soft:#10243A;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}   /* иначе inline display:flex перебивает скрытие */
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:14px;line-height:1.5;letter-spacing:-.005em;
+  -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;
+  font-variant-numeric:tabular-nums;
+}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 64px;display:flex;flex-direction:column;gap:16px}
+h2{font-size:16px;font-weight:600;margin:0;letter-spacing:-.01em}
+p{margin:0}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px 0;flex-wrap:wrap}
+.card-b{padding:16px 20px 20px}
+.hint{font-size:13px;color:var(--ink-3)}
+
+textarea#src{
+  width:100%;min-height:200px;resize:vertical;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;font-size:13px;line-height:1.7;color:var(--ink);
+}
+textarea#src::placeholder{color:var(--ink-3)}
+:is(textarea,input,select,button):focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{
+  border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);
+  border-radius:999px;padding:9px 18px;font-weight:600;font-size:13.5px;transition:opacity .12s;
+}
+.btn:hover{opacity:.85}
+.btn.ghost{background:var(--surface);color:var(--ink-2);border-color:var(--line)}
+.btn.ghost:hover{color:var(--ink);background:var(--surface-2);opacity:1}
+.btn.mini{padding:6px 13px;font-size:12.5px}
+
+.mono{font-variant-numeric:tabular-nums}
+
+/* переключатель способа ввода */
+.seg{display:inline-flex;gap:2px;padding:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px}
+.seg-b{border:0;background:transparent;color:var(--ink-2);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:500}
+.seg-b.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+textarea#free{
+  width:100%;resize:vertical;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;
+  padding:11px 13px;font-size:14px;line-height:1.6;color:var(--ink);
+}
+textarea#free::placeholder{color:var(--ink-3)}
+.pre{display:flex;flex-direction:column;gap:4px}
+.pre-ok{color:var(--ink-2);font-size:13px}
+.pre-ok b{color:var(--ink);font-weight:600}
+.pre-no{color:var(--warn);font-size:13px}
+
+/* шкала нагрузки */
+.tl-scroll{overflow-x:auto;padding-bottom:4px}
+.tl{min-width:620px;display:flex;flex-direction:column;gap:4px}
+.tl-head,.tl-row{display:grid;grid-template-columns:92px 52px 1fr;gap:10px;align-items:center}
+.tl-ticks{position:relative;height:14px}
+.tl-tick{position:absolute;top:0;font-size:10.5px;color:var(--ink-3);transform:translateX(-50%)}
+.tl-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-track{position:relative;height:22px;background:var(--surface-2);border:1px solid var(--line-soft);border-radius:6px;overflow:hidden}
+.tl-grid{position:absolute;inset:0}
+.tl-grid i{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
+.tl-blk{position:absolute;top:3px;bottom:3px;background:var(--bar);border-radius:4px}
+.tl-blk.bad{background:var(--crit)}
+.tl-sum{font-size:12.5px;color:var(--ink-2)}
+.tl-sum.bad{color:var(--crit);font-weight:600}
+.tl-sum.edge{color:var(--warn);font-weight:600}
+.tl-row.free .tl-name,.tl-row.free .tl-sum{color:var(--ink-3)}
+.tl-row.free .tl-sum{font-size:12px}
+
+/* записи */
+.slot{margin-top:16px}
+.slot:first-child{margin-top:0}
+.slot-t{font-size:12px;font-weight:600;color:var(--ink-3);letter-spacing:.04em;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.rec{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.rec-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.rec-line{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.rider{font-weight:600;font-size:14px}
+.tname{color:var(--ink-2);font-size:13.5px}
+.tname::before{content:"-";margin-right:7px;color:var(--ink-3)}
+.badge{font-size:12px;font-weight:500;padding:2px 9px;border-radius:6px;background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+.badge.ab{background:var(--blue-soft);color:var(--blue)}
+.badge.raz{background:var(--ok-soft);color:var(--ok)}
+.badge.exc{background:var(--warn-soft);color:var(--warn)}
+.sum{font-size:12.5px;color:var(--ink-3)}
+.hsel{
+  font:inherit;font-size:13px;padding:3px 8px;border-radius:8px;
+  border:1px solid var(--line);color:var(--ink);background:var(--surface-2);max-width:150px;cursor:pointer;
+}
+.hsel.add{border-style:dashed;color:var(--ink-3);background:transparent}
+.hsel:hover{border-color:var(--ink-3)}
+.dur{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:3px 6px;font-size:12.5px;max-width:210px;color:var(--ink-2)}
+.rec.bad{background:var(--crit-soft);border-left:3px solid var(--crit);border-radius:8px;padding:11px 12px;margin:4px 0;border-bottom-color:transparent}
+.rec.fresh{box-shadow:inset 2px 0 0 var(--ink)}
+.rec.bad.fresh{box-shadow:none}
+.rec-bad{font-size:12.5px;color:var(--crit);font-weight:500;display:flex;gap:7px}
+.rec-bad::before{content:"!";font-weight:700;font-size:10.5px;flex:none;width:15px;height:15px;margin-top:2px;border-radius:5px;background:var(--crit);color:var(--surface);display:flex;align-items:center;justify-content:center}
+.rec-note{font-size:12.5px;color:var(--warn)}
+.rec-info{font-size:12.5px;color:var(--ink-3)}
+.rec-raw{font-size:12px;color:var(--ink-3);overflow-wrap:anywhere}
+.rec-x{border:1px solid var(--line);background:var(--surface);color:var(--ink-3);border-radius:8px;width:28px;height:28px;flex:none;line-height:1;font-size:15px}
+.rec-x:hover{color:var(--crit);border-color:var(--crit-line)}
+
+/* форма */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.f{display:flex;flex-direction:column;gap:5px}
+.f label{font-size:12.5px;color:var(--ink-2);font-weight:500}
+.f input,.f select{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px;width:100%}
+.f input::placeholder{color:var(--ink-3)}
+
+/* не занятия */
+.nrow{font-size:13px;color:var(--ink-2);padding:8px 0;border-bottom:1px solid var(--line-soft);overflow-wrap:anywhere}
+.nrow:last-child{border-bottom:0}
+
+/* справочник */
+details.dict summary{cursor:pointer;padding:16px 20px;font-weight:600;font-size:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+details.dict summary::-webkit-details-marker{display:none}
+details.dict summary::after{content:"▾";color:var(--ink-3);font-size:12px;font-weight:400}
+details.dict[open] summary::after{content:"▴"}
+.dictgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;padding:0 20px 16px}
+.dictgrid textarea{width:100%;min-height:150px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.7;resize:vertical;color:var(--ink)}
+.rules{display:flex;flex-direction:column;gap:8px;font-size:13.5px;color:var(--ink-2);counter-reset:r}
+.rules div{display:flex;gap:10px}
+.rules div::before{counter-increment:r;content:counter(r);font-size:11px;color:var(--ink-2);font-weight:600;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;width:19px;height:19px;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px}
+@media (max-width:560px){
+  .wrap{padding:16px 12px 48px}
+  .rec{padding:9px 0}
+  .rec-main{gap:4px}
+  .hsel.add{width:46px;padding:3px 2px;text-indent:-2px}
+  .dur{max-width:150px}
+  .card-h{padding:14px 16px 0}
+  .card-b{padding:12px 16px 16px}
+  details.dict summary{padding:14px 16px}
+  .dictgrid{padding:0 16px 14px}
+}
+</style>
+
+<div class="wrap">
+
+  <section class="card">
+    <div class="card-h">
+      <h2>Введите черновик расписания</h2>
+      <span class="hint">формат свободный, как в блокноте</span>
+    </div>
+    <div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+      <textarea id="src" spellcheck="false" aria-label="Текст расписания" placeholder="10:00&#10;Марина аб гектор Аня&#10;Олег 2000 кедр Пётр&#10;&#10;11:00&#10;Двое Света 4000 глаша, гранд Аня, Пётр"></textarea>
+      <div class="row">
+        <button class="btn" id="go">Проверить</button>
+        <button class="btn ghost" id="clear">Очистить</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="addcard" hidden>
+    <div class="card-h">
+      <h2>Добавить занятие</h2>
+      <div class="seg">
+        <button class="seg-b on" id="m-free" type="button">Строкой</button>
+        <button class="seg-b" id="m-form" type="button">По полям</button>
+      </div>
+    </div>
+
+    <div class="card-b" id="pane-free" style="display:flex;flex-direction:column;gap:10px">
+      <textarea id="free" rows="3" spellcheck="false" placeholder="19:00&#10;Марина прогулка двое 4000 хью калина аня Пётр" aria-label="Занятие строкой"></textarea>
+      <div id="free-pre" class="hint"></div>
+      <div class="row"><button class="btn" id="add-free">Добавить</button><span class="hint" id="free-msg"></span></div>
+    </div>
+
+    <div class="card-b" id="pane-form" hidden style="display:flex;flex-direction:column;gap:12px">
+      <div class="grid2">
+        <div class="f"><label for="a-time">Время</label><input id="a-time" class="mono" value="18:00" inputmode="numeric" placeholder="1800" autocomplete="off"></div>
+        <div class="f"><label for="a-kind">Тип</label>
+          <select id="a-kind">
+            <option value="lesson">Занятие, 1 час</option>
+            <option value="walk">Прогулка, 1 час</option>
+            <option value="exc90">Экскурсия 90 мин (30 + катание 60)</option>
+            <option value="exc45">Экскурсия 45 мин (30 + катание 15)</option>
+            <option value="clean">Экскурсия с чисткой, без катания</option>
+          </select>
+        </div>
+        <div class="f"><label for="a-rider">Всадник</label><input id="a-rider" placeholder="Марина" autocomplete="off"></div>
+        <div class="f"><label for="a-pay">Оплата</label><input id="a-pay" placeholder="аб, 2000, серт" autocomplete="off"></div>
+        <div class="f" id="f-guide" hidden><label for="a-guide">Экскурсовод</label><input id="a-guide" placeholder="Аня" autocomplete="off"></div>
+        <div class="f"><label for="a-horse">Лошадь</label><input id="a-horse" placeholder="гек, карась" autocomplete="off"></div>
+        <div class="f"><label for="a-trainer">Тренер</label><input id="a-trainer" placeholder="аня и, Пётр" autocomplete="off"></div>
+      </div>
+      <div class="row"><button class="btn" id="add">Добавить и проверить</button><span class="hint" id="a-msg"></span></div>
+    </div>
+  </section>
+
+  <section class="card" id="reccard" hidden>
+    <div class="card-h">
+      <h2>Расписание</h2>
+      <div class="row">
+        <span class="hint" id="copymsg"></span>
+        <span class="hint" id="reccount"></span>
+        <button class="btn ghost mini" id="copy">Копировать текстом</button>
+      </div>
+    </div>
+    <div class="card-b" id="recs"></div>
+  </section>
+
+  <section class="card" id="ncard" hidden>
+    <div class="card-h">
+      <h2>Не занятия</h2>
+      <span class="hint" id="ncount"></span>
+    </div>
+    <div class="card-b">
+      <p class="hint" style="margin-bottom:10px">В этих строках нет тренера, поэтому в сетку они не попали. Обычно это пометки для себя.</p>
+      <div id="nlist"></div>
+    </div>
+  </section>
+
+  <section class="card" id="tlcard" hidden>
+    <div class="card-h">
+      <h2>Нагрузка лошадей</h2>
+      <span class="hint">лимит 4 часа в день, не более 2 часов подряд</span>
+    </div>
+    <div class="card-b"><div class="tl-scroll"><div class="tl" id="tl"></div></div></div>
+  </section>
+
+  <details class="dict card">
+    <summary>Справочник: клички лошадей</summary>
+    <div class="dictgrid">
+      <div class="f">
+        <label for="d-horses">Кличка: сокращения, которыми вы её пишете</label>
+        <textarea id="d-horses" spellcheck="false"></textarea>
+        <span class="hint">Нужен только чтобы раскрыть сокращения - гл, пр, гк. Строка <span class="mono">Пони: пони *</span> означает «несколько неразличимых лошадей»: такие записи в проверку занятости не идут.</span>
+      </div>
+      <div class="f" style="justify-content:flex-start">
+        <label>Тренеров бот не помнит</label>
+        <p class="hint">Имена тренеров нигде не хранятся - бот берёт их из самой строки, потому что тренер всегда стоит в конце. Новый человек в клубе заработает сразу, ушедший ничего за собой не оставит. Всадник, наоборот, всегда в начале строки.</p>
+      </div>
+    </div>
+    <div class="row" style="padding:0 16px 16px">
+      <button class="btn mini" id="d-save">Сохранить справочник</button>
+      <button class="btn ghost mini" id="d-reset">Вернуть исходный</button>
+      <span class="hint" id="d-msg"></span>
+    </div>
+  </details>
+
+  <section class="card">
+    <div class="card-h"><h2>Правила, по которым идёт проверка</h2></div>
+    <div class="card-b">
+      <div class="rules">
+        <div>Тренер не ведёт двух всадников в одно и то же время.</div>
+        <div>Лошадь не везёт двух всадников в одно и то же время.</div>
+        <div>Лошадь работает не больше 4 часов в день.</div>
+        <div>Лошадь работает не больше 2 часов подряд.</div>
+        <div>После двух часов подряд лошади нужен перерыв не меньше часа.</div>
+      </div>
+      <p class="hint" style="margin-top:12px">Время считается по пересечению интервалов, а не по круглому часу: запись в 12:30 занимает 12:30-13:30 и конфликтует с записью в 13:00. У экскурсии первые 30 минут идут без лошади, поэтому лошадь считается занятой только на катании.</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+"use strict";
+/* ---------- справочники по умолчанию ---------- */
+const DEF_HORSES = `Глаша: глаша, гл
+Прима: прима, пр
+Гектор: гектор, гек, гк
+Кедр: кедр
+Карась: карась
+Гранд: гранд
+Калина: калина
+Тиберий: тиберий, тиша
+Марица: марица
+Эсперро: эсперро, эсперо
+Хью: хью
+Пони: пони *`;
+
+/* Справочника тренеров нет: имя тренера всегда стоит в конце строки,
+   поэтому бот определяет его по месту в строке, а не по списку. */
+
+/* Расписание в файл не зашивается: данные клуба остаются в браузере. */
+
+/* ---------- хранилище ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : v; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+};
+
+/* ---------- разбор справочника ---------- */
+function parseDict(text){
+  const list = [];
+  text.split(/\n/).forEach(line => {
+    const t = line.trim();
+    if (!t) return;
+    const i = t.indexOf(':');
+    const name = (i < 0 ? t : t.slice(0, i)).trim();
+    if (!name) return;
+    let rest = i < 0 ? '' : t.slice(i + 1);
+    const group = /\*/.test(rest);
+    rest = rest.replace(/\*/g, '');
+    const aliases = rest.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    if (!aliases.includes(name.toLowerCase())) aliases.push(name.toLowerCase());
+    list.push({ name, aliases, group });
+  });
+  return list;
+}
+let HORSES = [], TRAINERS = [];
+function loadDicts(){
+  HORSES = parseDict(document.getElementById('d-horses').value);
+}
+function findIn(list, word){
+  const w = word.toLowerCase();
+  for (const e of list) if (e.aliases.includes(w)) return e;
+  return null;
+}
+
+/* ---------- служебные слова ---------- */
+const SERVICE = new Set(['с','далее','потом','затем','час','часа','часов','мин','минут','без','галопа','галоп','лошади','лошадь','чисткой','чистка','почистить','катание','катания','романтик','романтика','др','детский','детская','дети','на','в','для','и','плюс','рысь','шаг','урок','занятие','расписать','расписан','расписана','собеседование','отмена','отменено','отменили','перенос','перенесли','оплачено','оплата','долг','доплата','болеет','пропуск','возможно','под','вопрос']);
+
+/* тренеры, выученные из расписания: имя в конце строки - всегда тренер */
+let NAMES = new Set();
+const COUNT = { двое:2, трое:3, четверо:4, пятеро:5, вдвоем:2, втроем:3 };
+
+function toMin(hhmm){
+  const m = String(hhmm).match(/(\d{1,2})[:.](\d{2})/);
+  if (!m) return null;
+  return (+m[1]) * 60 + (+m[2]);
+}
+function fmt(min){
+  const h = Math.floor(min / 60), m = min % 60;
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+function hrs(min){
+  const h = min / 60;
+  return (Math.round(h * 10) / 10).toString().replace('.', ',') + ' ч';
+}
+
+/* ---------- разметка слов ---------- */
+const WORD = /^[а-яёa-z][а-яёa-z-]+$/i;                 // слово, похожее на имя
+const CAPNAME = /^[А-ЯЁA-Z][а-яёa-z-]+$/;               // с большой буквы, а не КАПСОМ
+const LETTER = /^[а-яёa-z]$/i;                          // инициал: «лена и», «лена г»
+
+function nameOf(word, initial){
+  const base = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  return initial ? base + ' ' + initial.toUpperCase() : base;
+}
+
+/* permissive = первый проход, когда список имён ещё не собран */
+function classify(raw, permissive){
+  const words = raw.trim()
+    .replace(/([^\s/]+)\/([^\s/]+)/g, '$1 / $2')          // «гранд/эсперро» - выбор из двух лошадей
+    .replace(/([()])/g, ' $1 ')                            // скобки отдельными токенами: в них пишут экскурсовода
+    .split(/[\s,]+/).filter(Boolean);
+  const tk = [];
+  let paren = false;
+  for (let i = 0; i < words.length; i++){
+    const w = words[i].replace(/^[«"'„]+/, '').replace(/[.;!?»"'“]+$/, '');
+    const lw = w.toLowerCase();
+    if (!lw) continue;
+    if (lw === '('){ paren = true; continue; }
+    if (lw === ')'){ paren = false; continue; }
+    if (lw === '/'){ tk.push({ w, lw, cls: 'alt' }); continue; }
+    if (COUNT[lw]){ tk.push({ w, lw, cls: 'count', val: COUNT[lw] }); continue; }
+    if (/^\d+$/.test(lw)){ tk.push({ w, lw, cls: 'pay', val: lw + ' ₽' }); continue; }
+    if (/^аб$|^абон/.test(lw)){ tk.push({ w, lw, cls: 'pay', val: 'аб' }); continue; }
+    if (/^серт/.test(lw)){ tk.push({ w, lw, cls: 'pay', val: 'серт' }); continue; }
+    if (/^оплачен/.test(lw)){ tk.push({ w, lw, cls: 'pay', val: 'оплачено' }); continue; }
+    if (/^экс/.test(lw)){ tk.push({ w, lw, cls: 'type', val: 'exc' }); continue; }
+    if (/^прогулк/.test(lw)){ tk.push({ w, lw, cls: 'type', val: 'walk' }); continue; }
+    if (/^чист/.test(lw)){ tk.push({ w, lw, cls: 'type', val: 'clean' }); continue; }
+    const h = findIn(HORSES, lw);
+    if (h){ tk.push({ w, lw, cls: 'horse', val: h }); continue; }
+    if (SERVICE.has(lw)){ tk.push({ w, lw, cls: 'service' }); continue; }
+    if (WORD.test(w) && (permissive || NAMES.has(lw) || CAPNAME.test(w))){
+      // к имени приклеивается инициал, если он идёт следом
+      let initial = null;
+      if (i + 1 < words.length && LETTER.test(words[i + 1]) && !findIn(HORSES, words[i + 1].toLowerCase())){
+        initial = words[i + 1]; i++;
+      }
+      tk.push({ w, lw, cls: 'name', key: lw, capital: CAPNAME.test(w), paren, val: nameOf(w, initial) });
+      continue;
+    }
+    tk.push({ w, lw, cls: 'unknown' });
+  }
+  return tk;
+}
+
+/* голова строки - всадники: всё до первой оплаты, типа занятия или лошади */
+function headEnd(tk){
+  const i = tk.findIndex(t => t.cls === 'pay' || t.cls === 'type' || t.cls === 'horse');
+  return i < 0 ? Math.min(1, tk.length) : i;
+}
+
+/* хвост строки - тренеры: имена, идущие подряд с конца, хоть через запятую, хоть без.
+   В хвост берём и незнакомое слово, но только если рядом стоит настоящее имя -
+   иначе «утром посмотреть нос» превратилось бы в трёх тренеров. */
+function tailStart(tk, from){
+  let i = tk.length - 1, run = 0, hasName = false;
+  while (i >= from && run < 5){
+    const t = tk[i];
+    if (t.cls === 'name'){ hasName = true; i--; run++; continue; }
+    if (t.cls === 'unknown' && WORD.test(t.w)){ i--; run++; continue; }
+    break;
+  }
+  return hasName ? i + 1 : tk.length;
+}
+
+/* первый проход: какие слова в этом расписании вообще являются именами.
+   Имя - то, что хоть раз написано с большой буквы либо встречается не один раз.
+   Никакого списка тренеров: он живёт только внутри одного разбора. */
+function learnNames(lines){
+  NAMES = new Set();
+  const seen = new Map(), capital = new Set();
+  lines.forEach(({ text }) => {
+    classify(text, true).forEach(t => {
+      if (t.cls !== 'name') return;
+      seen.set(t.key, (seen.get(t.key) || 0) + 1);
+      if (t.capital) capital.add(t.key);
+    });
+  });
+  seen.forEach((n, k) => { if (capital.has(k) || n > 1) NAMES.add(k); });
+}
+
+/* ---------- разбор строки ---------- */
+let uid = 0;
+function parseLine(raw, start){
+  const rec = {
+    id: ++uid, start, raw: raw.trim(),
+    riders: [], horses: [], trainersEarly: [], trainersLate: [],
+    pay: [], count: null, kind: 'lesson', flags: [], info: [], note: false
+  };
+  let isExc = false, isClean = false, isWalk = false;
+
+  const tk = classify(raw, false);
+  const head = headEnd(tk);
+  const tstart = tailStart(tk, head);
+
+  // всадники - в начале строки
+  for (let i = 0; i < head; i++){
+    const t = tk[i];
+    if (t.cls === 'count'){ rec.count = t.val; continue; }
+    if (t.cls === 'name') rec.riders.push(t.w); // имя в начале - всадник, даже если так же зовут тренера
+  }
+
+  // середина строки
+  let seenHorse = false, altOf = null;
+  for (let i = head; i < tstart; i++){
+    const t = tk[i];
+    switch (t.cls){
+      case 'count': rec.count = t.val; break;
+      case 'pay': rec.pay.push(t.val); break;
+      case 'type':
+        if (t.val === 'exc') isExc = true;
+        else if (t.val === 'walk') isWalk = true;
+        else isClean = true;
+        break;
+      case 'alt': altOf = rec.horses.length ? rec.horses[rec.horses.length - 1].name : null; break;
+      case 'horse':
+        if (altOf){ // «гранд/эсперро» - лошадь ещё не выбрана
+          rec.info.push('лошадь не выбрана: ' + altOf + ' или ' + t.val.name + ', считаю по первой');
+          altOf = null; break;
+        }
+        if (!rec.horses.some(x => x.name === t.val.name)) rec.horses.push(t.val);
+        seenHorse = true;
+        break;
+      case 'name': // имя в середине - тренер экскурсионной части
+        if (!rec.trainersEarly.includes(t.val)) rec.trainersEarly.push(t.val);
+        break;
+    }
+  }
+
+  // тренеры - в конце строки; имя в скобках - экскурсовод, он занят только первые полчаса
+  for (let i = tstart; i < tk.length; i++){
+    const t = tk[i];
+    const name = t.cls === 'name' ? t.val : nameOf(t.w, null);
+    if (t.cls !== 'name') rec.info.push('«' + t.w + '» принято за имя тренера');
+    const arr = t.paren ? rec.trainersEarly : rec.trainersLate;
+    if (!arr.includes(name)) arr.push(name);
+  }
+
+  if (!rec.trainersLate.length && !rec.trainersEarly.length){ rec.note = true; return rec; }
+
+  // чистка без лошади - лошадь не работает; чистка при названной лошади - катание всё равно есть
+  if (isExc && rec.horses.length){ rec.kind = 'exc90'; rec.dur = 90; rec.hOff = 30; rec.hDur = 60; }
+  else if (isClean || isExc){ rec.kind = 'clean'; rec.dur = 60; rec.hOff = 0; rec.hDur = 0; rec.info.push('чистка не считается работой лошади'); }
+  else if (isWalk){ rec.kind = 'walk'; rec.dur = 60; rec.hOff = 0; rec.hDur = 60; }
+  else { rec.kind = 'lesson'; rec.dur = 60; rec.hOff = 0; rec.hDur = 60; }
+
+  if (!rec.horses.length && rec.kind !== 'clean') rec.flags.push('лошадь не указана или её нет в справочнике');
+  if (!rec.riders.length) rec.info.push('всадник в строке не назван');
+  return rec;
+}
+
+const KINDS = {
+  lesson: { label: 'Занятие, 1 час', dur: 60, hOff: 0, hDur: 60 },
+  walk:   { label: 'Прогулка, 1 час', dur: 60, hOff: 0, hDur: 60 },
+  exc90:  { label: 'Экскурсия 90 мин', dur: 90, hOff: 30, hDur: 60 },
+  exc45:  { label: 'Экскурсия 45 мин', dur: 45, hOff: 30, hDur: 15 },
+  clean:  { label: 'Экскурсия с чисткой', dur: 60, hOff: 0, hDur: 0 }
+};
+
+/* время строкой: «14:00», «14.30», «19» */
+function headerTime(t){
+  const m = t.trim().match(/^(\d{1,2})(?:[:.](\d{2}))?$/);
+  if (!m) return null;
+  const h = +m[1], mi = m[2] === undefined ? 0 : +m[2];
+  if (h > 23 || mi > 59) return null;
+  if (m[2] === undefined && h < 6) return null;   // «3» - это не три часа ночи, а что-то другое
+  return h * 60 + mi;
+}
+/* время в начале записи: «13:30 осмотр», «19 Марина прогулка» */
+function inlineTime(t){
+  const m = t.match(/^(\d{1,2})(?:[:.](\d{2}))?\s+(.+)$/);
+  if (!m) return null;
+  const h = +m[1], mi = m[2] === undefined ? 0 : +m[2];
+  if (h > 23 || mi > 59) return null;
+  if (m[2] === undefined && h < 6) return null;   // занятий до шести утра не бывает
+  return { start: h * 60 + mi, text: m[3] };
+}
+
+/* строка из одних кличек под временем - это не занятие,
+   а назначение лошадей в записи, которые в это время уже стоят */
+function horseOnly(text){
+  const tk = classify(text, false);
+  if (!tk.length || !tk.every(t => t.cls === 'horse')) return null;
+  const hs = [];
+  tk.forEach(t => { if (!hs.some(x => x.name === t.val.name)) hs.push(t.val); });
+  return hs.length ? hs : null;
+}
+
+function parseSchedule(text){
+  // 1) режем на блоки по пустым строкам. Блок без времени в шапке - приписка, а не занятия
+  const lines = [];
+  let cur = null, pending = false;
+  text.split(/\n\s*\n/).forEach(block => {
+    const rows = block.split(/\n/).map(s => s.trim()).filter(Boolean);
+    if (!rows.length) return;
+    const h = headerTime(rows[0]);
+    const header = h !== null;
+    if (header) cur = h;
+    const body = rows.slice(header ? 1 : 0);
+    // блок из одного времени: записи к нему идут ниже, через пустую строку
+    if (header && !body.length){ pending = true; return; }
+    const timed = header || pending;
+    pending = false;
+    body.forEach(t => {
+      const inl = inlineTime(t);
+      if (inl){ lines.push({ start: inl.start, text: inl.text, orig: t }); return; }
+      const hh = headerTime(t);
+      if (hh !== null){ cur = hh; return; }
+      // приписка в конце дня, без времени над ней - примечание, не занятие
+      lines.push({ start: timed ? cur : null, text: t, orig: t });
+    });
+  });
+
+  // 2) собираем имена, встречающиеся в этом расписании
+  learnNames(lines.filter(l => l.start !== null));
+
+  // 3) разбираем
+  const out = [], notes = [], assigns = [];
+  lines.forEach(l => {
+    if (l.start === null){ notes.push(l.orig); return; }
+    const hs = horseOnly(l.text);
+    if (hs){ assigns.push({ start: l.start, horses: hs, orig: l.orig }); return; }
+    const rec = parseLine(l.text, l.start);
+    if (rec.note) notes.push(l.orig);
+    else { rec.raw = l.orig; out.push(rec); }
+  });
+
+  // 4) назначаем лошадей в записи, которые уже стоят в это время
+  assigns.forEach(a => {
+    const targets = out.filter(r => r.start === a.start);
+    if (!targets.length){ notes.push(a.orig + '  (в это время нет ни одной записи)'); return; }
+    const put = (rec, horses) => {
+      rec.horses = horses.slice();
+      rec.flags = rec.flags.filter(f => !/лошад/i.test(f));
+      rec.info = rec.info.filter(f => !/лошадь не выбрана/.test(f));
+      rec.info.push('лошадь задана строкой «' + a.orig + '»');
+    };
+    if (targets.length === 1) put(targets[0], a.horses);
+    else {
+      const n = Math.min(targets.length, a.horses.length);
+      for (let i = 0; i < n; i++) put(targets[i], [a.horses[i]]);
+      if (a.horses.length !== targets.length)
+        targets[0].info.push('в строке «' + a.orig + '» лошадей ' + a.horses.length + ', а записей в это время ' + targets.length);
+    }
+  });
+
+  out.sort((a, b) => a.start - b.start);
+  return { recs: out, notes };
+}
+
+/* ---------- интервалы ---------- */
+function merge(ivs){
+  const s = ivs.slice().sort((a, b) => a.from - b.from);
+  const res = [];
+  for (const iv of s){
+    const last = res[res.length - 1];
+    if (last && iv.from <= last.to) last.to = Math.max(last.to, iv.to);
+    else res.push({ from: iv.from, to: iv.to });
+  }
+  return res;
+}
+function overlaps(a, b){ return a.from < b.to && b.from < a.to; }
+
+function check(recs){
+  const V = [];
+  const said = new Map();                       // id записи -> что с ней не так
+  const say = (rec, text) => {
+    const list = said.get(rec.id) || [];
+    if (!list.includes(text)) list.push(text);
+    said.set(rec.id, list);
+  };
+  const push = (sev, rule, title, body, ids) => V.push({ sev, rule, title, body, ids: ids || [] });
+
+  // занятость тренеров
+  const tmap = {};
+  recs.forEach(r => {
+    const late = r.trainersLate.length ? r.trainersLate : [];
+    const early = r.trainersEarly.length ? r.trainersEarly : [];
+    const hasSplit = r.kind.startsWith('exc') && early.length && late.length;
+    const add = (name, from, to) => { (tmap[name] = tmap[name] || []).push({ from, to, r }); };
+    if (hasSplit){
+      early.forEach(n => add(n, r.start, r.start + r.hOff));
+      late.forEach(n => add(n, r.start + r.hOff, r.start + r.dur));
+      early.filter(n => late.includes(n)).forEach(() => {});
+    } else {
+      [...new Set([...early, ...late])].forEach(n => add(n, r.start, r.start + r.dur));
+    }
+  });
+  Object.keys(tmap).forEach(name => {
+    const ivs = tmap[name].sort((a, b) => a.from - b.from);
+    for (let i = 0; i < ivs.length; i++)
+      for (let j = i + 1; j < ivs.length; j++)
+        if (ivs[i].r !== ivs[j].r && overlaps(ivs[i], ivs[j])){
+          const from = Math.max(ivs[i].from, ivs[j].from), to = Math.min(ivs[i].to, ivs[j].to);
+          push('crit', 1, name + ' занята в двух местах сразу',
+            '<b>' + fmt(from) + '-' + fmt(to) + '</b> - «' + ivs[i].r.raw + '» и «' + ivs[j].r.raw + '»',
+            [ivs[i].r.id, ivs[j].r.id]);
+          say(ivs[i].r, 'тренер ' + name + ' в ' + fmt(from) + '-' + fmt(to) + ' ещё и здесь: «' + ivs[j].r.raw + '»');
+          say(ivs[j].r, 'тренер ' + name + ' в ' + fmt(from) + '-' + fmt(to) + ' ещё и здесь: «' + ivs[i].r.raw + '»');
+        }
+  });
+
+  // занятость лошадей
+  const hmap = {};
+  recs.forEach(r => {
+    if (!r.hDur) return;
+    r.horses.forEach(h => {
+      if (h.group) return;
+      (hmap[h.name] = hmap[h.name] || []).push({ from: r.start + r.hOff, to: r.start + r.hOff + r.hDur, r });
+    });
+  });
+  Object.keys(hmap).forEach(name => {
+    const ivs = hmap[name].sort((a, b) => a.from - b.from);
+    for (let i = 0; i < ivs.length; i++)
+      for (let j = i + 1; j < ivs.length; j++)
+        if (ivs[i].r !== ivs[j].r && overlaps(ivs[i], ivs[j])){
+          const from = Math.max(ivs[i].from, ivs[j].from), to = Math.min(ivs[i].to, ivs[j].to);
+          push('crit', 2, name + ' стоит под двумя всадниками',
+            '<b>' + fmt(from) + '-' + fmt(to) + '</b> - «' + ivs[i].r.raw + '» и «' + ivs[j].r.raw + '»',
+            [ivs[i].r.id, ivs[j].r.id]);
+          say(ivs[i].r, name + ' в ' + fmt(from) + '-' + fmt(to) + ' уже под другим всадником: «' + ivs[j].r.raw + '»');
+          say(ivs[j].r, name + ' в ' + fmt(from) + '-' + fmt(to) + ' уже под другим всадником: «' + ivs[i].r.raw + '»');
+        }
+
+    const inRange = (a, b) => ivs.filter(x => x.from < b && a < x.to);
+    const blocks = merge(ivs);
+    const total = blocks.reduce((s, b) => s + (b.to - b.from), 0);
+    if (total > 240){
+      push('crit', 3, name + ' работает больше 4 часов',
+        'Всего <b>' + hrs(total) + '</b> при лимите 4 часа.', ivs.map(x => x.r.id));
+      ivs.forEach(x => say(x.r, name + ' за день выходит на ' + hrs(total) + ' - больше лимита в 4 часа'));
+    }
+    blocks.forEach((b, i) => {
+      const d = b.to - b.from;
+      if (d > 120){
+        push('crit', 4, name + ' работает больше 2 часов подряд',
+          '<b>' + fmt(b.from) + '-' + fmt(b.to) + '</b>, это ' + hrs(d) + ' без перерыва.', inRange(b.from, b.to).map(x => x.r.id));
+        inRange(b.from, b.to).forEach(x => say(x.r, name + ' работает ' + fmt(b.from) + '-' + fmt(b.to) + ' без перерыва, это ' + hrs(d) + ' подряд'));
+      }
+      const next = blocks[i + 1];
+      if (d >= 120 && next && next.from - b.to < 60){
+        push('crit', 5, name + ' не отдыхает после двух часов',
+          'Работа <b>' + fmt(b.from) + '-' + fmt(b.to) + '</b>, следующая в <b>' + fmt(next.from) + '</b>. Перерыв ' + hrs(next.from - b.to) + ' вместо часа.',
+          inRange(b.from, next.to).map(x => x.r.id));
+        inRange(next.from, next.to).forEach(x => say(x.r, name + ' отработала ' + fmt(b.from) + '-' + fmt(b.to) + ', ей нужен час отдыха - сейчас только ' + hrs(next.from - b.to)));
+        inRange(b.from, b.to).forEach(x => say(x.r, name + ' после этих двух часов идёт работать в ' + fmt(next.from) + ', отдых всего ' + hrs(next.from - b.to)));
+      }
+    });
+  });
+
+  return { violations: V, hmap, said };
+}
+
+/* ---------- отрисовка ---------- */
+const DAY_FROM = 600, DAY_TO = 1260;
+let RECS = [];
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* тип занятия и оплата одной плашкой */
+function typeBadge(r){
+  const pay = r.pay.join(' ');
+  let cls = '', text;
+  if (/^exc|clean/.test(r.kind)){ cls = 'exc'; text = 'Экскурсия'; }
+  else if (r.kind === 'walk'){ text = 'Прогулка'; }
+  else if (/аб/.test(pay)){ cls = 'ab'; text = 'Абонемент'; }
+  else if (/серт/.test(pay)){ text = 'Сертификат'; }
+  else if (/\d/.test(pay)){ cls = 'raz'; text = 'Разовое'; }
+  else text = 'Занятие';
+  const money = (pay.match(/\d[\d\s]*\s*₽/) || [''])[0];
+  return '<span class="badge ' + cls + '">' + text + '</span>' + (money ? '<span class="sum">' + esc(money) + '</span>' : '');
+}
+
+/* выпадающий список лошадей в записи; idx = -1 - это «добавить ещё» */
+function horseSelect(rec, idx){
+  const cur = idx >= 0 ? rec.horses[idx].name : '';
+  let o = idx < 0 ? '<option value="">+ лошадь</option>' : '';
+  HORSES.forEach(h => {
+    o += '<option value="' + esc(h.name) + '"' + (h.name === cur ? ' selected' : '') + '>' + esc(h.name) + (h.group ? ' *' : '') + '</option>';
+  });
+  if (idx >= 0) o += '<option value="">убрать</option>';
+  return '<select class="hsel' + (idx < 0 ? ' add' : '') + '" data-id="' + rec.id + '" data-i="' + idx +
+    '" aria-label="' + (idx < 0 ? 'Добавить лошадь' : 'Лошадь ' + esc(cur)) + '">' + o + '</select>';
+}
+
+function render(notes){
+  const { violations, hmap, said } = check(RECS);
+  const badIds = new Set();
+  violations.forEach(v => v.ids.forEach(id => badIds.add(id)));
+
+  // строки, которые не стали занятиями
+  const ncard = document.getElementById('ncard');
+  ncard.hidden = !notes.length;
+  document.getElementById('ncount').textContent = notes.length ? notes.length + ' шт.' : '';
+  document.getElementById('nlist').innerHTML = notes.map(n => '<div class="nrow">' + esc(n) + '</div>').join('');
+
+  // шкала нагрузки
+  const tl = document.getElementById('tl');
+  // показываем всех лошадей из справочника, даже тех, кто сегодня не работает
+  const names = [...new Set([
+    ...HORSES.filter(h => !h.group).map(h => h.name),
+    ...Object.keys(hmap)
+  ])].sort((a, b) => a.localeCompare(b, 'ru'));
+  document.getElementById('tlcard').hidden = !RECS.length;
+  const span = DAY_TO - DAY_FROM;
+  const pct = m => ((m - DAY_FROM) / span * 100);
+  let ticks = '';
+  for (let t = DAY_FROM; t <= DAY_TO; t += 60) ticks += '<span class="tl-tick" style="left:' + pct(t) + '%">' + fmt(t).slice(0, 2) + '</span>';
+  let grid = '';
+  for (let t = DAY_FROM; t <= DAY_TO; t += 60) grid += '<i style="left:' + pct(t) + '%"></i>';
+  let rows = '<div class="tl-head"><span></span><span></span><div class="tl-ticks">' + ticks + '</div></div>';
+  names.forEach(n => {
+    const ivs = hmap[n] || [];
+    const blocks = merge(ivs);
+    const total = blocks.reduce((s, b) => s + (b.to - b.from), 0);
+    const bad = total > 240 || blocks.some((b, i) => (b.to - b.from) > 120 || ((b.to - b.from) >= 120 && blocks[i + 1] && blocks[i + 1].from - b.to < 60));
+    let bl = '';
+    blocks.forEach(b => {
+      const long = (b.to - b.from) > 120;
+      bl += '<span class="tl-blk' + (long ? ' bad' : '') + '" style="left:' + pct(b.from) + '%;width:' + ((b.to - b.from) / span * 100) + '%" title="' + fmt(b.from) + '-' + fmt(b.to) + '"></span>';
+    });
+    rows += '<div class="tl-row' + (total ? '' : ' free') + '"><span class="tl-name">' + esc(n) + '</span>' +
+      '<span class="tl-sum ' + (bad ? 'bad' : total === 240 ? 'edge' : '') + '">' + (total ? hrs(total) : 'свободна') + '</span>' +
+      '<div class="tl-track"><div class="tl-grid">' + grid + '</div>' + bl + '</div></div>';
+  });
+  tl.innerHTML = rows;
+
+  // записи
+  const box = document.getElementById('recs');
+  document.getElementById('reccard').hidden = !RECS.length;
+  document.getElementById('addcard').hidden = false;   // добавлять можно и в пустой день
+  document.getElementById('reccount').textContent = RECS.length ? RECS.length + ' записей' : '';
+  let html = '', last = null;
+  RECS.forEach(r => {
+    if (r.start !== last){ if (last !== null) html += '</div>'; html += '<div class="slot"><div class="slot-t">' + fmt(r.start) + '</div>'; last = r.start; }
+    const opts = Object.keys(KINDS).map(k => '<option value="' + k + '"' + (k === r.kind ? ' selected' : '') + '>' + KINDS[k].label + '</option>').join('');
+    const isBad = badIds.has(r.id) || r.flags.length;
+    html += '<div class="rec' + (isBad ? ' bad' : '') + (r.fresh ? ' fresh' : '') + '"><div class="rec-main">' +
+      '<div class="rec-line">' +
+        '<span class="rider">' + (r.riders.length ? esc(r.riders.join(', ')) : '-') +
+          (r.count ? ' <span class="sum">' + r.count + ' чел.</span>' : '') + '</span>' +
+        typeBadge(r) +
+        r.horses.map((x, i) => horseSelect(r, i)).join('') + horseSelect(r, -1) +
+        '<span class="tname">' + esc([...new Set([...r.trainersEarly, ...r.trainersLate])].join(', ')) + '</span>' +
+      '</div>' +
+      '<div class="rec-line"><select class="dur" data-id="' + r.id + '">' + opts + '</select>' +
+        '<span class="hint mono">' + fmt(r.start) + '-' + fmt(r.start + r.dur) + (r.hDur ? ' - лошадь ' + fmt(r.start + r.hOff) + '-' + fmt(r.start + r.hOff + r.hDur) : ' - лошадь не занята') + '</span></div>' +
+      ((said.get(r.id) || []).map(m => '<div class="rec-bad">' + esc(m) + '</div>').join('')) +
+      (r.flags.length ? '<div class="rec-note">' + r.flags.map(esc).join(', ') + '</div>' : '') +
+      (r.info && r.info.length ? '<div class="rec-info">' + r.info.map(esc).join(', ') + '</div>' : '') +
+      '<div class="rec-raw">' + esc(r.raw) + '</div>' +
+    '</div><button class="rec-x" data-del="' + r.id + '" aria-label="Убрать запись">×</button></div>';
+  });
+  if (last !== null) html += '</div>';
+  box.innerHTML = html;
+
+}
+
+/* расписание обычным текстом: время, всадник с оплатой, лошадь, тренер */
+function exportText(notes){
+  const out = [];
+  let last = null;
+  RECS.forEach(r => {
+    if (r.start !== last){ if (last !== null) out.push(''); out.push(fmt(r.start)); last = r.start; }
+    // оплата сразу после имени - по ней видно, где всадник, а где тренер
+    const pay = r.pay.join(' ').trim();
+    const who = (r.riders.length ? r.riders.join(', ') : 'без всадника') +
+      (r.count ? ' (' + r.count + ' чел.)' : '') + (pay ? ' ' + pay : '');
+    const parts = [who];
+    if (r.horses.length) parts.push(r.horses.map(h => h.name).join(', '));
+    const trainers = [...new Set([...r.trainersEarly, ...r.trainersLate])].join(', ');
+    if (trainers) parts.push(trainers);
+    let line = parts.join(' - ');
+    if (/^exc|clean/.test(r.kind)) line += ' (экскурсия)';
+    else if (r.kind === 'walk') line += ' (прогулка)';
+    out.push(line);
+  });
+  if (notes && notes.length){
+    out.push('', 'Примечания:');
+    notes.forEach(n => out.push('- ' + n));
+  }
+  return out.join('\n');
+}
+
+/* ---------- работа с текстом расписания ---------- */
+const HEADER = /^\d{1,2}([:.]\d{2})?$/;   // «14:00», «14.30», «19»
+function srcRows(){ return document.getElementById('src').value.split('\n'); }
+function saveRows(rows){
+  const ta = document.getElementById('src');
+  ta.value = rows.join('\n');
+  store.set('sched.src', ta.value);
+}
+/* дописать строку в блок нужного времени, создав блок, если его ещё нет */
+function insertIntoText(time, line){
+  const rows = srcRows();
+  if (!rows.some(r => r.trim())){ saveRows([fmt(time), line]); return; }   // пустой черновик
+  let at = -1, before = -1;
+  for (let i = 0; i < rows.length; i++){
+    const t = rows[i].trim();
+    if (headerTime(t) === null) continue;
+    const m = headerTime(t);
+    if (m === time){
+      let j = i + 1;
+      while (j < rows.length && rows[j].trim() && headerTime(rows[j]) === null) j++;
+      at = j; break;
+    }
+    if (m > time && before < 0) before = i;
+  }
+  if (at >= 0) rows.splice(at, 0, line);
+  else if (before >= 0) rows.splice(before, 0, fmt(time), line, '');
+  else rows.push('', fmt(time), line);
+  saveRows(rows);
+}
+function removeFromText(line){
+  const rows = srcRows();
+  const i = rows.findIndex(r => r.trim() === line.trim());
+  if (i >= 0){ rows.splice(i, 1); saveRows(rows); }
+}
+function replaceInText(oldLine, newLine){
+  const rows = srcRows();
+  const i = rows.findIndex(r => r.trim() === oldLine.trim());
+  if (i >= 0){ rows[i] = rows[i].replace(oldLine.trim(), newLine.trim()); saveRows(rows); }
+}
+/* правка клички прямо в исходной строке, чтобы текст и разбор не разъезжались */
+function rawWithHorse(raw, action, idx, newName){
+  const parts = raw.split(/(\s+)/);
+  const spots = [];
+  parts.forEach((p, i) => {
+    const clean = p.replace(/[^A-Za-zА-Яа-яЁё-]/g, '');
+    if (clean && findIn(HORSES, clean.toLowerCase())) spots.push({ i, clean });
+  });
+  if (action === 'add'){
+    const at = spots.length ? spots[spots.length - 1].i : parts.length - 1;
+    parts.splice(at + 1, 0, ' ', newName);
+  } else if (spots[idx]){
+    const s = spots[idx];
+    if (action === 'del'){ parts[s.i] = parts[s.i].replace(s.clean, '').replace(/^[,\s]+|[,\s]+$/g, ''); if (!parts[s.i]) parts.splice(s.i, 2); }
+    else parts[s.i] = parts[s.i].replace(s.clean, newName);
+  }
+  return parts.join('').replace(/\s{2,}/g, ' ').replace(/\s+,/g, ',').trim();
+}
+/* время: 1430 -> 14:30, без ручного двоеточия */
+function maskTime(v, final){
+  const d = v.replace(/\D/g, '').slice(0, 4);
+  if (d.length === 4) return d.slice(0, 2) + ':' + d.slice(2);
+  if (final && d.length === 3) return d.slice(0, 1) + ':' + d.slice(1);
+  return d;                       // пока набирают - двоеточие не мешаем ставить
+}
+
+/* ---------- события ---------- */
+let NOTES = [];
+function run(){
+  loadDicts();
+  const res = parseSchedule(document.getElementById('src').value);
+  RECS = res.recs; NOTES = res.notes;
+  store.set('sched.src', document.getElementById('src').value);
+  render(NOTES);
+}
+document.getElementById('go').addEventListener('click', run);
+document.getElementById('clear').addEventListener('click', () => {
+  document.getElementById('src').value = ''; RECS = []; NOTES = [];
+  ['ncard','tlcard','reccard','addcard'].forEach(id => document.getElementById(id).hidden = true);
+  store.set('sched.src', '');
+});
+document.getElementById('recs').addEventListener('click', e => {
+  const b = e.target.closest('[data-del]');
+  if (!b) return;
+  const r = RECS.find(x => x.id === +b.dataset.del);
+  if (r) removeFromText(r.raw);
+  RECS = RECS.filter(x => x.id !== +b.dataset.del);
+  render(NOTES);
+});
+document.getElementById('recs').addEventListener('change', e => {
+  const hs = e.target.closest('select.hsel');
+  if (hs){
+    const r = RECS.find(x => x.id === +hs.dataset.id);
+    if (!r) return;
+    const i = +hs.dataset.i, name = hs.value;
+    const found = HORSES.find(x => x.name === name);
+    const oldRaw = r.raw;
+    if (i >= 0){
+      if (!name){ r.horses.splice(i, 1); r.raw = rawWithHorse(r.raw, 'del', i); }
+      else if (found && !r.horses.some((x, j) => j !== i && x.name === name)){
+        r.horses[i] = found; r.raw = rawWithHorse(r.raw, 'set', i, found.name);
+      }
+    } else if (found && !r.horses.some(x => x.name === name)){
+      r.horses.push(found); r.raw = rawWithHorse(r.raw, 'add', -1, found.name);
+    }
+    if (r.raw !== oldRaw) replaceInText(oldRaw, r.raw);
+    // пометки про лошадь пересчитываем заново
+    r.flags = r.flags.filter(f => !/лошад/i.test(f));
+    r.info = (r.info || []).filter(f => !/лошадь не выбрана/.test(f));
+    if (!r.horses.length && r.kind !== 'clean') r.flags.push('лошадь не указана');
+    render(NOTES);
+    return;
+  }
+  const s = e.target.closest('select.dur');
+  if (!s) return;
+  const r = RECS.find(x => x.id === +s.dataset.id);
+  if (!r) return;
+  const k = KINDS[s.value];
+  r.kind = s.value; r.dur = k.dur; r.hOff = k.hOff; r.hDur = k.hDur;
+  r.info = (r.info || []).filter(f => !/чистка не считается/.test(f));
+  if (s.value === 'clean') r.info.push('чистка не считается работой лошади');
+  render(NOTES);
+});
+/* ---------- ввод строкой ---------- */
+const freeTa = document.getElementById('free');
+
+/* разбираем строки как есть: время может быть отдельной строкой или в начале записи */
+function freeLines(raw){
+  const out = [];
+  let cur = null;
+  raw.split('\n').map(s => s.trim()).filter(Boolean).forEach(l => {
+    const hh = headerTime(l);
+    if (hh !== null){ cur = hh; return; }
+    const inl = inlineTime(l);
+    if (inl){ out.push({ start: inl.start, text: inl.text }); return; }
+    if (cur !== null) out.push({ start: cur, text: l });
+    else out.push({ start: null, text: l });
+  });
+  return out;
+}
+
+/* показываем, что поняли, ещё до добавления */
+function previewFree(){
+  const box = document.getElementById('free-pre');
+  const raw = freeTa.value.trim();
+  if (!raw){ box.innerHTML = ''; return; }
+  const items = freeLines(raw);
+  if (!items.length){ box.innerHTML = ''; return; }
+  // разбираем вместе со всем днём, чтобы имена тренеров узнавались по всему расписанию
+  const all = parseSchedule(document.getElementById('src').value + '\n\n' + raw);
+  const rows = items.map(it => {
+    if (it.start === null) return '<div class="pre-no">не нашла время - поставьте его в начале строки или строкой выше</div>';
+    const strip = t => t.trim().replace(/^\d{1,2}[:.]\d{2}\s+/, '');
+    const rec = all.recs.find(r => strip(r.raw) === strip(it.text) && r.start === it.start);
+    if (!rec) return '<div class="pre-no">' + esc(it.text) + ' - не похоже на занятие, нет тренера</div>';
+    const p = [fmt(rec.start)];
+    p.push(rec.riders.length ? '<b>' + esc(rec.riders.join(', ')) + '</b>' + (rec.count ? ' (' + rec.count + ' чел.)' : '') : 'без всадника');
+    if (rec.pay.length) p.push(esc(rec.pay.join(' ')));
+    if (rec.horses.length) p.push(esc(rec.horses.map(h => h.name).join(', ')));
+    const tr = [...new Set([...rec.trainersEarly, ...rec.trainersLate])].join(', ');
+    if (tr) p.push(esc(tr));
+    p.push(KINDS[rec.kind].label.toLowerCase());
+    return '<div class="pre-ok">' + p.join(' - ') + '</div>';
+  });
+  box.className = 'pre';
+  box.innerHTML = rows.join('');
+}
+freeTa.addEventListener('input', () => { loadDicts(); previewFree(); });
+
+document.getElementById('add-free').addEventListener('click', () => {
+  loadDicts();
+  const msg = document.getElementById('free-msg');
+  const items = freeLines(freeTa.value.trim());
+  const bad = items.filter(i => i.start === null).length;
+  const good = items.filter(i => i.start !== null);
+  if (!good.length){ msg.textContent = 'Не нашла время - поставьте его в начале'; return; }
+  good.forEach(i => insertIntoText(i.start, i.text));
+  freeTa.value = '';
+  document.getElementById('free-pre').innerHTML = '';
+  run();
+  RECS.forEach(r => { r.fresh = good.some(i => i.text.trim() === r.raw.trim() && i.start === r.start); });
+  render(NOTES);
+  const conflicted = check(RECS).violations.some(v => v.ids.some(id => (RECS.find(r => r.id === id) || {}).fresh));
+  msg.textContent = conflicted ? 'Добавлено, есть конфликт - смотрите красное'
+    : bad ? 'Добавлено, кроме строк без времени' : 'Добавлено';
+  setTimeout(() => msg.textContent = '', 3500);
+  document.getElementById('reccard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+/* переключатель «строкой / по полям» */
+function setMode(free){
+  document.getElementById('m-free').classList.toggle('on', free);
+  document.getElementById('m-form').classList.toggle('on', !free);
+  document.getElementById('pane-free').hidden = !free;
+  document.getElementById('pane-form').hidden = free;
+  store.set('sched.mode', free ? 'free' : 'form');
+}
+document.getElementById('m-free').addEventListener('click', () => setMode(true));
+document.getElementById('m-form').addEventListener('click', () => setMode(false));
+
+document.getElementById('copy').addEventListener('click', async () => {
+  const text = exportText(NOTES), msg = document.getElementById('copymsg');
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; }
+  catch (e){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try { ok = document.execCommand('copy'); } catch (e2){}
+    ta.remove();
+  }
+  msg.textContent = ok ? 'Скопировано' : 'Не вышло, скопируйте вручную';
+  setTimeout(() => msg.textContent = '', 2500);
+});
+
+const aTime = document.getElementById('a-time');
+aTime.addEventListener('input', () => { aTime.value = maskTime(aTime.value, false); });
+aTime.addEventListener('blur', () => { aTime.value = maskTime(aTime.value, true); });
+document.getElementById('a-kind').addEventListener('change', e => {
+  document.getElementById('f-guide').hidden = !/^exc|clean/.test(e.target.value);
+});
+document.getElementById('add').addEventListener('click', () => {
+  loadDicts();
+  aTime.value = maskTime(aTime.value, true);
+  const t = toMin(aTime.value);
+  const msg = document.getElementById('a-msg');
+  if (t === null || t > 1439){ msg.textContent = 'Время нужно в виде 1800'; return; }
+  msg.textContent = '';
+  const k = KINDS[document.getElementById('a-kind').value];
+  const horses = document.getElementById('a-horse').value.split(',').map(s => s.trim()).filter(Boolean);
+  const trainers = document.getElementById('a-trainer').value.split(',').map(s => s.trim()).filter(Boolean);
+  const rec = {
+    id: ++uid, start: t, kind: document.getElementById('a-kind').value,
+    dur: k.dur, hOff: k.hOff, hDur: k.hDur,
+    riders: document.getElementById('a-rider').value.split(',').map(s => s.trim()).filter(Boolean),
+    horses: [], trainersEarly: [], trainersLate: [],
+    pay: document.getElementById('a-pay').value.trim() ? [document.getElementById('a-pay').value.trim()] : [],
+    count: null, flags: [], info: [], raw: 'добавлено вручную'
+  };
+  horses.forEach(h => {
+    const f = findIn(HORSES, h);
+    if (f){ if (!rec.horses.some(x => x.name === f.name)) rec.horses.push(f); }
+    else rec.flags.push('такой клички нет в справочнике: «' + h + '»');
+  });
+  // тренеров ниоткуда не сверяем - просто берём имя, как написали; «лена и» тоже
+  trainers.forEach(n => {
+    const parts = n.split(/\s+/).filter(Boolean);
+    if (!parts.length) return;
+    const initial = parts.length > 1 && LETTER.test(parts[parts.length - 1]) ? parts.pop() : null;
+    const name = nameOf(parts.join(' '), initial);
+    if (!rec.trainersLate.includes(name)) rec.trainersLate.push(name);
+  });
+  // экскурсовод ведёт только первые 30 минут, поэтому он идёт отдельно от тренера катания
+  const guide = document.getElementById('a-guide').value.trim();
+  const isExc = /^exc|clean/.test(rec.kind);
+  if (isExc && guide){
+    const p = guide.split(/\s+/).filter(Boolean);
+    const ini = p.length > 1 && LETTER.test(p[p.length - 1]) ? p.pop() : null;
+    rec.trainersEarly.push(nameOf(p.join(' '), ini));
+  }
+  if (!rec.trainersLate.length && !rec.trainersEarly.length) rec.flags.push('не вписан тренер');
+  if (!rec.horses.length && !horses.length && rec.kind !== 'clean') rec.flags.push('не вписана лошадь');
+  if (!rec.riders.length) rec.info.push('всадник не назван');
+
+  const typeWord = rec.kind === 'walk' ? 'прогулка' : isExc ? 'экскурсия' : '';
+  rec.raw = [
+    rec.riders.join(' '), rec.pay.join(' '), typeWord,
+    rec.trainersEarly.length ? '(' + rec.trainersEarly.join(' ') + ')' : '',
+    rec.horses.map(h => h.name).join(' '), rec.trainersLate.join(' ')
+  ].filter(Boolean).join(' ');
+
+  RECS.forEach(x => { x.fresh = false; });
+  rec.fresh = true;
+  RECS.push(rec);
+  RECS.sort((a, b) => a.start - b.start);
+  insertIntoText(t, rec.raw);            // строка сразу уходит в расписание
+  render(NOTES);
+
+  const bad = check(RECS).violations.some(v => v.ids.includes(rec.id)) || rec.flags.length;
+  msg.textContent = bad ? 'Добавлено, но есть конфликт - запись отмечена красным' : 'Добавлено в расписание';
+  ['a-rider','a-horse','a-trainer','a-pay','a-guide'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('reccard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+document.getElementById('d-save').addEventListener('click', () => {
+  store.set('sched.horses', document.getElementById('d-horses').value);
+  document.getElementById('d-msg').textContent = 'Сохранено';
+  setTimeout(() => document.getElementById('d-msg').textContent = '', 2200);
+  run();
+});
+document.getElementById('d-reset').addEventListener('click', () => {
+  document.getElementById('d-horses').value = DEF_HORSES;
+  store.set('sched.horses', DEF_HORSES);
+  run();
+});
+
+/* ---------- старт ---------- */
+// разовый перенос со старых ключей, чтобы сохранённое не пропало
+['horses','src','mode'].forEach(k => {
+  try {
+    const old = localStorage.getItem('polesye.' + k);
+    if (old !== null && localStorage.getItem('sched.' + k) === null) localStorage.setItem('sched.' + k, old);
+    if (old !== null) localStorage.removeItem('polesye.' + k);
+  } catch(e){}
+});
+document.getElementById('d-horses').value = store.get('sched.horses', DEF_HORSES);
+document.getElementById('src').value = store.get('sched.src', '');
+setMode(store.get('sched.mode', 'free') === 'free');
+run();
+</script>
+
+</body>
+</html>
