@@ -1,15 +1,6 @@
-<!doctype html>
-<html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F4F4F5" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#09090B" media="(prefers-color-scheme: dark)">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Расписание">
-<title>Проверка расписания</title>
-</head>
-<body>
+<title>Расписание ШВЕ</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
 :root{
   --ground:#F4F4F5;
@@ -61,7 +52,7 @@
 [hidden]{display:none!important}   /* иначе inline display:flex перебивает скрытие */
 body{
   margin:0;background:var(--ground);color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-family:Inter,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   font-size:14px;line-height:1.5;letter-spacing:-.005em;
   -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;
   font-variant-numeric:tabular-nums;
@@ -83,6 +74,12 @@ textarea#src{
   padding:12px 14px;font-size:13px;line-height:1.7;color:var(--ink);
 }
 textarea#src::placeholder{color:var(--ink-3)}
+textarea.fillbox{
+  width:100%;min-height:150px;resize:vertical;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;font-size:13px;line-height:1.7;color:var(--ink);
+}
+textarea.fillbox::placeholder{color:var(--ink-3)}
 textarea#out{
   width:100%;min-height:220px;resize:vertical;
   background:var(--surface-2);border:1px solid var(--line);border-radius:10px;
@@ -105,13 +102,15 @@ textarea#out{
 .st{border-radius:10px;padding:11px 14px;font-size:13.5px;display:flex;flex-direction:column;gap:4px}
 .st.ok{background:var(--ok-soft);color:var(--ok)}
 .st.bad{background:var(--crit-soft);color:var(--crit)}
+.st.warn{background:var(--warn-soft);color:var(--warn)}
+.st.info{background:var(--blue-soft);color:var(--blue)}
 .st b{font-size:14px}
 .st span{color:var(--ink-2)}
 .st ul{margin:2px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
 .st li{color:var(--ink-2)}
 
 /* переключатель способа ввода */
-.seg{display:inline-flex;gap:2px;padding:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px}
+.seg{display:inline-flex;align-self:flex-start;gap:2px;padding:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px}
 .seg-b{border:0;background:transparent;color:var(--ink-2);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:500}
 .seg-b.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
 textarea#free{
@@ -149,8 +148,8 @@ textarea#free::placeholder{color:var(--ink-3)}
 .tl-row.free .tl-sum{font-size:12px}
 
 /* записи */
-.slot{margin-top:30px}
-.slot:first-child{margin-top:4px}
+.slot{margin-top:22px;padding-top:22px;border-top:1px solid var(--line)}
+.slot:first-child{margin-top:4px;padding-top:0;border-top:0}
 .slot-t{font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.01em;line-height:1.1;margin-bottom:-9px}
 .slot-t + .rec{padding-top:24px}
 .rec{display:flex;gap:10px;align-items:flex-start;padding:4px 0}
@@ -170,7 +169,7 @@ textarea#free::placeholder{color:var(--ink-3)}
 }
 .hsel.add{border-style:dashed;color:var(--ink-3);background:transparent;width:auto;min-width:0;padding:3px 6px;text-align:center}
 .hsel:hover{border-color:var(--ink-3)}
-.dur{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:3px 6px;font-size:12.5px;max-width:210px;color:var(--ink-2);margin-left:auto}
+
 .rec.bad{background:var(--crit-soft);border-left:3px solid var(--crit);border-radius:8px;padding:14px;margin:16px 0}
 .slot-t + .rec.bad{padding-top:10px;margin-top:22px}
 .rec.fresh{box-shadow:inset 2px 0 0 var(--ink)}
@@ -179,8 +178,22 @@ textarea#free::placeholder{color:var(--ink-3)}
 .rec-bad::before{content:"!";font-weight:700;font-size:10.5px;flex:none;width:15px;height:15px;margin-top:2px;border-radius:5px;background:var(--crit);color:var(--surface);display:flex;align-items:center;justify-content:center}
 .rec-note{font-size:12.5px;color:var(--warn)}
 .rec-info{font-size:12.5px;color:var(--ink-3)}
-.rec-x{border:1px solid var(--line);background:var(--surface);color:var(--ink-3);border-radius:8px;width:28px;height:28px;flex:none;line-height:1;font-size:15px}
+.rec-act{display:flex;gap:12px;flex:none}
+.rec-b{border:1px solid var(--line);background:var(--surface);color:var(--ink-3);border-radius:8px;width:28px;height:28px;flex:none;line-height:1;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.rec-b:hover{color:var(--ink);border-color:var(--ink-3)}
+.rec-b svg{width:14px;height:14px;display:block}
+.rec-b.done{color:var(--ok);border-color:var(--ok)}
 .rec-x:hover{color:var(--crit);border-color:var(--crit-line)}
+
+/* подтверждение удаления */
+.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(16,24,40,.45)}
+.modal[hidden]{display:none!important}
+.modal-b{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 12px 32px rgba(16,24,40,.18);padding:20px;width:100%;max-width:340px}
+.modal-t{font-size:16px;font-weight:700;color:var(--ink)}
+.modal-l{margin-top:8px;font-size:13.5px;color:var(--ink-2);line-height:1.5}
+.modal-r{display:flex;gap:10px;margin-top:18px}
+.modal-r .btn{flex:1;text-align:center}
+.btn.crit{background:var(--crit);border-color:var(--crit);color:#fff}
 
 /* форма */
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
@@ -208,7 +221,9 @@ details.dict[open] summary::after{content:"▴"}
   .rec{padding:12px 0}
   .slot-t + .rec{padding-top:24px}
   .rec-main{gap:6px}
-  .dur{max-width:150px;margin-left:0}
+  .rec-act{gap:14px}
+  .seg{display:flex;width:100%}
+  .seg-b{flex:1;padding:7px 8px;font-size:12.5px;white-space:nowrap}
   .card-h{padding:14px 16px 0}
   .card-b{padding:12px 16px 16px}
   details.dict summary{padding:14px 16px}
@@ -220,16 +235,37 @@ details.dict[open] summary::after{content:"▴"}
 
   <section class="card">
     <div class="card-h">
-      <h2>Введите черновик расписания</h2>
-      <span class="hint">формат свободный, как в блокноте</span>
+      <h2>Расписание занятий</h2>
     </div>
     <div class="card-b" style="display:flex;flex-direction:column;gap:12px">
-      <textarea id="src" spellcheck="false" aria-label="Текст расписания" placeholder="10:00&#10;Марина аб гектор Аня&#10;Олег 2000 кедр Пётр&#10;&#10;11:00&#10;Двое Света 4000 глаша, гранд Аня, Пётр"></textarea>
-      <div class="row">
+      <div class="seg">
+        <button class="seg-b on" id="mode-fill" type="button">Составить расписание</button>
+        <button class="seg-b" id="mode-check" type="button">Проверить расписание</button>
+      </div>
+      <div class="f" id="src-field" hidden>
+        <label for="src">Введите черновик расписания</label>
+        <textarea id="src" spellcheck="false" placeholder="10:00&#10;Марина аб гектор Аня&#10;Олег 2000 кедр Пётр&#10;&#10;11:00&#10;Двое Света 4000 глаша, гранд Аня, Пётр"></textarea>
+      </div>
+      <div id="fill-fields" style="display:flex;flex-direction:column;gap:14px">
+        <div class="f">
+          <label for="fill-tr">Кто сегодня работает</label>
+          <textarea id="fill-tr" class="fillbox" spellcheck="false" placeholder="Даша полный день&#10;Кирилл до обеда&#10;Аня 11-16&#10;&#10;Кириллу не давать экскурсии&#10;Ане не давать Кедра"></textarea>
+        </div>
+        <div class="f">
+          <label for="fill-ri">Кто хочет заниматься</label>
+          <textarea id="fill-ri" class="fillbox" spellcheck="false" placeholder="11:00 Мария аб&#10;Оля аб любое&#10;Иван 2000 после 15&#10;Двое Самир 4000 16:00&#10;&#10;Вале не давать Кедра&#10;Мария лучше с Дашей&#10;Карась сегодня не работает"></textarea>
+        </div>
+      </div>
+      <div class="row" id="row-check" hidden>
         <button class="btn" id="go">Проверить</button>
         <button class="btn ghost" id="clear">Очистить</button>
       </div>
-      <div id="status"></div>
+      <div class="row" id="row-fill">
+        <button class="btn" id="fill">Заполнить</button>
+        <button class="btn ghost" id="clear2">Очистить</button>
+        <span class="hint" id="fill-msg"></span>
+      </div>
+      <div id="status" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
   </section>
 
@@ -314,8 +350,10 @@ details.dict[open] summary::after{content:"▴"}
         <span class="hint">Нужен только чтобы раскрыть сокращения - гл, пр, гк. Строка <span class="mono">Пони: пони *</span> означает «несколько неразличимых лошадей»: такие записи в проверку занятости не идут.</span>
       </div>
       <div class="f" style="justify-content:flex-start">
-        <label>Тренеров бот не помнит</label>
-        <p class="hint">Имена тренеров нигде не хранятся - бот берёт их из самой строки, потому что тренер всегда стоит в конце. Новый человек в клубе заработает сразу, ушедший ничего за собой не оставит. Всадник, наоборот, всегда в начале строки.</p>
+        <label for="d-exempt">Кому не нужен минимум трёх часов</label>
+        <input id="d-exempt" placeholder="Анна" autocomplete="off">
+        <p class="hint">Остальным тренерам положено не меньше трёх часов в день. Кто не набрал - жёлтая пометка под черновиком, это не ошибка.</p>
+        <p class="hint" style="margin-top:6px">Списка тренеров нет: имена берутся из самой строки, потому что тренер всегда стоит в конце. Новый человек заработает сразу, ушедший ничего за собой не оставит.</p>
       </div>
     </div>
     <div class="row" style="padding:0 16px 16px">
@@ -334,11 +372,24 @@ details.dict[open] summary::after{content:"▴"}
         <div>Лошадь работает не больше 4 часов в день.</div>
         <div>Лошадь работает не больше 2 часов подряд.</div>
         <div>После двух часов подряд лошади нужен перерыв не меньше часа.</div>
+        <div>У тренера и у лошади остаётся час обеда - в 14:00, иначе в 13:00 или в 12:00.</div>
+        <div>Тренеру набирается не меньше 3 часов работы в день.</div>
       </div>
       <p class="hint" style="margin-top:12px">Время считается по пересечению интервалов, а не по круглому часу: запись в 12:30 занимает 12:30-13:30 и конфликтует с записью в 13:00. У экскурсии первые 30 минут идут без лошади, поэтому лошадь считается занятой только на катании.</p>
     </div>
   </section>
 
+</div>
+
+<div class="modal" id="delmodal" hidden role="dialog" aria-modal="true" aria-labelledby="delmodal-t">
+  <div class="modal-b">
+    <div class="modal-t" id="delmodal-t">Удалить запись</div>
+    <div class="modal-l" id="delmodal-l"></div>
+    <div class="modal-r">
+      <button class="btn ghost" id="delcancel" type="button">Отмена</button>
+      <button class="btn crit" id="delok" type="button">Подтверждаю</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -772,7 +823,36 @@ function check(recs){
     });
   });
 
-  return { violations: V, hmap, said };
+  // жёлтое, не красное: тренеру положено не меньше трёх часов в день
+  const light = [];
+  const exempt = EXEMPT();
+  Object.keys(tmap).forEach(name => {
+    if (exempt.includes(name.toLowerCase())) return;
+    const total = merge(tmap[name].map(x => ({ from: x.from, to: x.to })))
+      .reduce((s, b) => s + (b.to - b.from), 0);
+    if (total < 180) light.push({ name, total });
+  });
+  light.sort((a, b) => a.total - b.total);
+
+  // жёлтое: часа обеда нет ни в 14:00, ни в 13:00, ни в 12:00
+  const nolunch = [];
+  const freeWindow = ivs => LUNCH.find(L => !ivs.some(iv => iv.from < L + 60 && L < iv.to));
+  Object.keys(tmap).forEach(name => {
+    const ivs = tmap[name].map(x => ({ from: x.from, to: x.to }));
+    if (freeWindow(ivs) === undefined) nolunch.push({ name, who: 'тренер' });
+  });
+  Object.keys(hmap).forEach(name => {
+    const ivs = hmap[name].map(x => ({ from: x.from, to: x.to }));
+    if (freeWindow(ivs) === undefined) nolunch.push({ name, who: 'лошадь' });
+  });
+
+  return { violations: V, hmap, said, tmap, light, nolunch };
+}
+
+/* кому минимум трёх часов не нужен */
+function EXEMPT(){
+  const el = document.getElementById('d-exempt');
+  return (el ? el.value : 'Анна').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 }
 
 /* ---------- отрисовка ---------- */
@@ -780,6 +860,9 @@ const DAY_FROM = 600, DAY_TO = 1260;
 let RECS = [];
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* иконка копирования в записи */
+const ICON_COPY = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="5.4" y="5.4" width="8.2" height="8.2" rx="2"/><path d="M10.6 3.4a2 2 0 0 0-2-2H4.4a3 3 0 0 0-3 3v4.2a2 2 0 0 0 2 2"/></svg>';
 
 /* тип занятия и оплата одной плашкой */
 function typeBadge(r){
@@ -800,33 +883,49 @@ function typeBadge(r){
 /* выпадающий список лошадей в записи; idx = -1 - это «добавить ещё» */
 function horseSelect(rec, idx){
   const cur = idx >= 0 ? rec.horses[idx].name : '';
-  let o = idx < 0 ? '<option value="">+</option>' : '';
+  let o = idx < 0 ? '<option value="">лошадь</option><option value="*">подобрать</option>' : '';
   HORSES.forEach(h => {
     o += '<option value="' + esc(h.name) + '"' + (h.name === cur ? ' selected' : '') + '>' + esc(h.name) + (h.group ? ' *' : '') + '</option>';
   });
-  if (idx >= 0) o += '<option value="">убрать</option>';
+  if (idx >= 0) o += '<option value="*">подобрать другую</option><option value="">убрать</option>';
   return '<select class="hsel' + (idx < 0 ? ' add' : '') + '" data-id="' + rec.id + '" data-i="' + idx +
     '" aria-label="' + (idx < 0 ? 'Добавить лошадь' : 'Лошадь ' + esc(cur)) + '">' + o + '</select>';
 }
 
 function render(notes){
-  const { violations, hmap, said } = check(RECS);
+  const { violations, hmap, said, light, nolunch } = check(RECS);
   const badIds = new Set();
   violations.forEach(v => v.ids.forEach(id => badIds.add(id)));
 
   // итог сразу под черновиком: сходится или нет, и что именно
   const st = document.getElementById('status');
   const flagged = RECS.filter(r => r.flags.length);
-  if (!RECS.length) st.innerHTML = '';
-  else if (violations.length){
-    const seen = new Set();
-    const items = violations.filter(v => { const k = v.title + v.body; if (seen.has(k)) return false; seen.add(k); return true; })
-      .map(v => '<li>' + esc(v.title) + ' - ' + v.body.replace(/<\/?b>/g, '') + '</li>').join('');
-    st.innerHTML = '<div class="st bad"><b>' + (violations.length === 1 ? 'Ошибка' : 'Ошибки') + '</b><ul>' + items + '</ul></div>';
-  } else {
-    st.innerHTML = '<div class="st ok"><b>Без ошибок</b><span>Записей ' + RECS.length +
-      (flagged.length ? ', но ' + flagged.length + ' стоит проверить глазами' : ', конфликтов нет') + '</span></div>';
+  let out = '';
+  if (RECS.length){
+    if (violations.length){
+      const seen = new Set();
+      const items = violations.filter(v => { const k = v.title + v.body; if (seen.has(k)) return false; seen.add(k); return true; })
+        .map(v => '<li>' + esc(v.title) + ' - ' + v.body.replace(/<\/?b>/g, '') + '</li>').join('');
+      out += '<div class="st bad"><b>' + (violations.length === 1 ? 'Ошибка' : 'Ошибки') + '</b><ul>' + items + '</ul></div>';
+    } else {
+      out += '<div class="st ok"><b>Без ошибок</b><span>Записей ' + RECS.length +
+        (flagged.length ? ', но ' + flagged.length + ' стоит проверить глазами' : ', конфликтов нет') + '</span></div>';
+    }
+    if (AUTO.length){
+      out += '<div class="st info"><b>Лошадь подобрана автоматически</b><ul>' +
+        AUTO.map(a => '<li>' + esc(a.who) + ' - ' + esc(a.horse) + '</li>').join('') + '</ul></div>';
+    }
+    if (light.length){
+      out += '<div class="st warn"><b>Мало часов у тренеров</b><ul>' +
+        light.map(t => '<li>' + esc(t.name) + ' - ' + hrs(t.total) + ' вместо трёх</li>').join('') + '</ul></div>';
+    }
+    if (nolunch.length){
+      out += '<div class="st warn"><b>Не остаётся часа на обед</b><ul>' +
+        nolunch.map(x => '<li>' + esc(x.name) + ' - занят' + (x.who === 'лошадь' ? 'а' : '') +
+          ' и в 12:00, и в 13:00, и в 14:00</li>').join('') + '</ul></div>';
+    }
   }
+  st.innerHTML = out;
 
   // строки, которые не стали занятиями
   const ncard = document.getElementById('ncard');
@@ -869,30 +968,47 @@ function render(notes){
   // записи
   const box = document.getElementById('recs');
   document.getElementById('reccard').hidden = !RECS.length;
-  document.getElementById('addcard').hidden = false;   // добавлять можно и в пустой день
+  document.getElementById('addcard').hidden = !RECS.length;   // сначала черновик, потом добавление
   document.getElementById('reccount').textContent = RECS.length ? RECS.length + ' записей' : '';
   let html = '', last = null;
   RECS.forEach(r => {
     if (r.start !== last){ if (last !== null) html += '</div>'; html += '<div class="slot"><div class="slot-t">' + fmt(r.start) + '</div>'; last = r.start; }
-    const opts = Object.keys(KINDS).map(k => '<option value="' + k + '"' + (k === r.kind ? ' selected' : '') + '>' + KINDS[k].label + '</option>').join('');
     const isBad = badIds.has(r.id) || r.flags.length;
     html += '<div class="rec' + (isBad ? ' bad' : '') + (r.fresh ? ' fresh' : '') + '"><div class="rec-main">' +
       '<div class="rec-line">' +
         '<span class="rider">' + (r.riders.length ? esc(r.riders.join(', ')) : '-') +
           (r.count ? ' <span class="sum">' + r.count + ' чел.</span>' : '') + '</span>' +
         typeBadge(r) +
-        r.horses.map((x, i) => horseSelect(r, i)).join('') +
+        (r.horses.length ? r.horses.map((x, i) => horseSelect(r, i)).join('') : (r.hDur ? horseSelect(r, -1) : '')) +
         '<span class="tname">' + esc([...new Set([...r.trainersEarly, ...r.trainersLate])].join(', ')) + '</span>' +
-        '<select class="dur" data-id="' + r.id + '">' + opts + '</select>' +
       '</div>' +
       ((said.get(r.id) || []).map(m => '<div class="rec-bad">' + esc(m) + '</div>').join('')) +
       (r.flags.length ? '<div class="rec-note">' + r.flags.map(esc).join(', ') + '</div>' : '') +
       (r.info && r.info.length ? '<div class="rec-info">' + r.info.map(esc).join(', ') + '</div>' : '') +
-    '</div><button class="rec-x" data-del="' + r.id + '" aria-label="Убрать запись">×</button></div>';
+    '</div><div class="rec-act">' +
+      '<button class="rec-b" data-copy="' + r.id + '" aria-label="Скопировать запись" title="Скопировать">' + ICON_COPY + '</button>' +
+      '<button class="rec-b rec-x" data-del="' + r.id + '" aria-label="Убрать запись" title="Убрать">×</button>' +
+    '</div></div>';
   });
   if (last !== null) html += '</div>';
   box.innerHTML = html;
   document.getElementById('out').value = exportText(notes);
+}
+
+/* одна запись обычным текстом: всадник с оплатой, лошадь, тренер */
+function recLine(r){
+  // оплата сразу после имени - по ней видно, где всадник, а где тренер
+  const pay = r.pay.join(' ').trim();
+  const who = (r.riders.length ? r.riders.join(', ') : 'без всадника') +
+    (r.count ? ' (' + r.count + ' чел.)' : '') + (pay ? ' ' + pay : '');
+  const parts = [who];
+  if (r.horses.length) parts.push(r.horses.map(h => h.name).join(', '));
+  const trainers = [...new Set([...r.trainersEarly, ...r.trainersLate])].join(', ');
+  if (trainers) parts.push(trainers);
+  let line = parts.join(' - ');
+  if (/^exc|clean/.test(r.kind)) line += ' (экскурсия)';
+  else if (r.kind === 'walk') line += ' (прогулка)';
+  return line;
 }
 
 /* расписание обычным текстом: время, всадник с оплатой, лошадь, тренер */
@@ -900,25 +1016,301 @@ function exportText(notes){
   const out = [];
   let last = null;
   RECS.forEach(r => {
-    if (r.start !== last){ if (last !== null) out.push(''); out.push(fmt(r.start)); last = r.start; }
-    // оплата сразу после имени - по ней видно, где всадник, а где тренер
-    const pay = r.pay.join(' ').trim();
-    const who = (r.riders.length ? r.riders.join(', ') : 'без всадника') +
-      (r.count ? ' (' + r.count + ' чел.)' : '') + (pay ? ' ' + pay : '');
-    const parts = [who];
-    if (r.horses.length) parts.push(r.horses.map(h => h.name).join(', '));
-    const trainers = [...new Set([...r.trainersEarly, ...r.trainersLate])].join(', ');
-    if (trainers) parts.push(trainers);
-    let line = parts.join(' - ');
-    if (/^exc|clean/.test(r.kind)) line += ' (экскурсия)';
-    else if (r.kind === 'walk') line += ' (прогулка)';
-    out.push(line);
+    // строка с неразрывным пробелом: телеграм рисует её как пустую и блоки не слипаются
+    if (r.start !== last){ if (last !== null) out.push('', ' '); out.push(fmt(r.start)); last = r.start; }
+    // дефис в начале строки: телеграм разбирает вставленный текст как разметку
+    // и без него склеивает соседние строки в одну
+    out.push('- ' + recLine(r));
   });
   if (notes && notes.length){
-    out.push('', 'Примечания:');
+    out.push('', ' ', 'Примечания:');
     notes.forEach(n => out.push('- ' + n));
   }
   return out.join('\n');
+}
+
+/* ---------- заполнение дня ---------- */
+const LUNCH = [840, 780, 720];            // обед: 14:00, иначе 13:00, иначе 12:00
+const KIND_DUR = { lesson:[60,0,60], walk:[60,0,60], exc90:[90,30,60] };
+
+function parseShift(text, weekend){
+  const lastStart = weekend ? 1140 : 1200;   // последняя тренировка начинается в 19:00 или в 20:00
+  const t = (text || '').toLowerCase();
+  const m = t.match(/(\d{1,2})(?:[:.](\d{2}))?\s*[-–—]\s*(\d{1,2})(?:[:.](\d{2}))?/);
+  if (m) return { from: +m[1] * 60 + (+m[2] || 0), to: +m[3] * 60 + (+m[4] || 0) - 60 };
+  if (/до\s*обеда/.test(t)) return { from: 600, to: 780 };
+  if (/после\s*обеда/.test(t)) return { from: 840, to: lastStart };
+  return { from: 600, to: lastStart };
+}
+
+function parseTrainerLine(line, weekend){
+  const words = line.split(/\s+/).filter(Boolean);
+  const nameParts = [];
+  let i = 0;
+  for (; i < words.length; i++){
+    const w = words[i].toLowerCase();
+    if (/^\d/.test(w) || /^(полн|обед|до|после|с|выход)/.test(w)) break;
+    nameParts.push(words[i]);
+  }
+  if (!nameParts.length) return null;
+  const initial = nameParts.length > 1 && LETTER.test(nameParts[nameParts.length - 1]) ? nameParts.pop() : null;
+  const sh = parseShift(words.slice(i).join(' '), weekend);
+  return { name: nameOf(nameParts.join(' '), initial), from: sh.from, to: sh.to };
+}
+
+/* пожелание всадника: время жёсткое, «любое», «после 15», «до 14» */
+function parseWish(line, trainerSet){
+  const w = { rider: '', pay: [], kind: 'lesson', horse: null, trainer: null, count: null,
+              fixed: null, after: null, before: null, raw: line };
+  let rest = line;
+  const inl = inlineTime(line);
+  if (inl){ w.fixed = inl.start; rest = inl.text; }
+  const words = rest.split(/[\s,()]+/).filter(Boolean);
+  for (let i = 0; i < words.length; i++){
+    const raw = words[i], lw = raw.toLowerCase();
+    // время может стоять и в конце строки: «Вика аб калина Даша 17:00»
+    if (w.fixed === null && /^\d{1,2}[:.]\d{2}$/.test(lw)){
+      const t = headerTime(lw);
+      if (t !== null){ w.fixed = t; continue; }
+    }
+    if (COUNT[lw]){ w.count = COUNT[lw]; continue; }
+    if (/^любо|^всё$|^все$|^равно|^когда|^угодно/.test(lw)) continue;
+    if (/^после$/.test(lw) && words[i + 1]){ const t = headerTime(words[++i]); if (t !== null) w.after = t; continue; }
+    if (/^до$/.test(lw) && words[i + 1]){ const t = headerTime(words[++i]); if (t !== null) w.before = t; continue; }
+    if (/^\d+$/.test(lw)){ w.pay.push(lw + ' ₽'); continue; }
+    if (/^аб$|^абон/.test(lw)){ w.pay.push('аб'); continue; }
+    if (/^серт/.test(lw)){ w.pay.push('серт'); continue; }
+    if (/^оплачен/.test(lw)){ w.pay.push('оплачено'); continue; }
+    if (/^экс/.test(lw)){ w.kind = 'exc90'; continue; }
+    if (/^прогулк/.test(lw)){ w.kind = 'walk'; continue; }
+    const h = findIn(HORSES, lw);
+    if (h){ w.horse = h; continue; }
+    if (trainerSet.has(lw)){ w.trainer = trainerSet.get(lw); continue; }
+    if (!w.rider && /^[А-ЯЁA-Z]/.test(raw)) w.rider = raw;
+  }
+  return w;
+}
+
+/* ограничения на день: лошадь отдыхает, тренер без экскурсий, кому кто подходит */
+function emptyCons(){
+  return { horseOut: new Set(), noExc: new Set(), prefer: new Map(),
+           only: new Map(), avoid: new Map(),        // про всадника
+           onlyT: new Map(), avoidT: new Map() };    // про тренера
+}
+/* «Оле», «Вике», «Гектора» - те же Оля, Вика и Гектор: сравниваем по основе слова */
+function stem(w){ return (w || '').toLowerCase().replace(/[аеёиоуыэюяьйъ]+$/, ''); }
+function sameName(a, b){
+  const x = stem(a), y = stem(b);
+  return !!x && x === y;          // «Вале» = «Валя», но «Мария» не «Марица»
+}
+function findHorseLoose(word){
+  const w = word.toLowerCase().replace(/[.;!?,]+$/, '');
+  const exact = findIn(HORSES, w);
+  if (exact) return exact;
+  return HORSES.find(h => !h.group && h.aliases.some(a => a.length > 2 && sameName(a, w))) || null;
+}
+function horsesIn(line){
+  return line.split(/[\s,]+/).map(findHorseLoose).filter(Boolean).map(h => h.name);
+}
+const ROLE_WORDS = /^(тренер|всадник|лошад|кличк|конь|пони|клиент|ребён|ребен)/i;
+function firstNameIn(line){
+  const all = line.match(/[А-ЯЁ][а-яё-]+/g) || [];
+  return all.find(w => !ROLE_WORDS.test(w)) || null;
+}
+/* true, если строка оказалась ограничением, а не занятием */
+function readConstraint(line, cons, who){
+  const low = line.toLowerCase();
+  const hs = horsesIn(line);
+  if (hs.length && /не работает|не работают|отдыхает|выходн|хромает|болеет|не берём|не берем/.test(low)){
+    hs.forEach(h => cons.horseOut.add(h)); return true;
+  }
+  if (/экскурс/.test(low) && /(^|\s)(не|без|никаких)(\s|$)/.test(low)){
+    const n = firstNameIn(line); if (n){ cons.noExc.add(stem(n)); return true; }
+  }
+  const only = who === 'tr' ? cons.onlyT : cons.only;
+  const avoid = who === 'tr' ? cons.avoidT : cons.avoid;
+  if (/только/.test(low) && hs.length){
+    const n = firstNameIn(line); if (n){ only.set(stem(n), hs); return true; }
+  }
+  if (hs.length && /не ставить|не сажать|нельзя|не подходит|не подходят|не давать|не даём|не даем/.test(low)){
+    const n = firstNameIn(line); if (n){ const k = stem(n); avoid.set(k, (avoid.get(k) || []).concat(hs)); return true; }
+  }
+  if (/лучше|предпочит|поставь к|ставить к/.test(low) && !hs.length){
+    const names = (line.match(/[А-ЯЁ][а-яё-]+/g) || []).filter(w => !ROLE_WORDS.test(w));
+    if (names.length >= 2){ cons.prefer.set(stem(names[0]), names[names.length - 1]); return true; }
+  }
+  return false;
+}
+
+function parseFillText(trText, riText, weekend){
+  const trainers = [], wishes = [], cons = emptyCons();
+  trText.split('\n').map(x => x.trim()).filter(Boolean).forEach(line => {
+    const low = line.toLowerCase();
+    if (/^тренер|^кто /.test(low)) return;
+    if (/^(выходн|будн|суббот|воскрес)[а-яё]*$/.test(low)) return;
+    if (readConstraint(line, cons, 'tr')) return;
+    const t = parseTrainerLine(line, weekend); if (t) trainers.push(t);
+  });
+  riText.split('\n').map(x => x.trim()).filter(Boolean).forEach(line => {
+    const low = line.toLowerCase();
+    if (/^всадник|^кто /.test(low)) return;
+    if (/^(выходн|будн|суббот|воскрес)[а-яё]*$/.test(low)) return;
+    if (readConstraint(line, cons, 'ri')) return;
+    wishes.push(line);
+  });
+  return { trainers, wishes, cons };
+}
+
+function isWeekend(text){
+  return /выходн|суббот|воскрес/i.test(text);
+}
+
+function fillDay(trText, riText){
+  const weekend = isWeekend(trText + '\n' + riText);
+  const { trainers, wishes: rawWishes, cons } = parseFillText(trText, riText, weekend);
+  if (!trainers.length) return { error: 'Не нашла, кто сегодня работает - заполните верхнее поле.' };
+
+  const trainerSet = new Map();
+  trainers.forEach(t => {
+    trainerSet.set(t.name.toLowerCase(), t.name);
+    t.name.split(' ').forEach(p => { if (p.length > 1 && !trainerSet.has(p.toLowerCase())) trainerSet.set(p.toLowerCase(), t.name); });
+  });
+  const wishes = rawWishes.map(l => parseWish(l, trainerSet)).filter(w => w.rider || w.count);
+  if (!wishes.length) return { error: 'Не нашла всадников - заполните нижнее поле.' };
+
+  const horses = HORSES.filter(h => !h.group && !cons.horseOut.has(h.name));
+  const busyT = {}, busyH = {};
+  trainers.forEach(t => busyT[t.name] = []);
+  horses.forEach(h => busyH[h.name] = []);
+  const hit = (list, from, to) => list.some(iv => iv.from < to && from < iv.to);
+  const load = list => merge(list).reduce((s, b) => s + (b.to - b.from), 0);
+
+  function trainerOk(t, from, to){
+    if (from < t.from || from > t.to) return false;
+    if (hit(busyT[t.name], from, to)) return false;
+    if ((t.to + 60) - t.from <= 300) return true;                 // короткая смена - обед не нужен
+    const ivs = busyT[t.name].concat([{ from, to }]);
+    return LUNCH.some(L => L >= t.from && L + 60 <= t.to + 60 && !hit(ivs, L, L + 60));
+  }
+  function horseOk(name, from, to){
+    if (hit(busyH[name], from, to)) return false;
+    const ivs = busyH[name].concat([{ from, to }]);
+    const blocks = merge(ivs);
+    if (blocks.reduce((s, b) => s + (b.to - b.from), 0) > 240) return false;
+    for (let i = 0; i < blocks.length; i++){
+      const d = blocks[i].to - blocks[i].from;
+      if (d > 120) return false;
+      if (d >= 120 && blocks[i + 1] && blocks[i + 1].from - blocks[i].to < 60) return false;
+    }
+    return LUNCH.some(L => !hit(ivs, L, L + 60));
+  }
+
+  const placed = [], failed = [];
+  // сначала жёсткое время, потом пожелания по тренеру, потом всё остальное:
+  // иначе свободный всадник успевает занять того тренера, которого просили
+  const order = [...wishes].sort((a, b) => {
+    const rank = w => w.fixed !== null ? 0
+      : (w.trainer || cons.prefer.has(stem(w.rider))) ? 1
+      : (w.after !== null || w.before !== null) ? 2 : 3;
+    return rank(a) - rank(b) || (a.fixed || 0) - (b.fixed || 0);
+  });
+
+  order.forEach(w => {
+    const [dur, hOff, hDur] = KIND_DUR[w.kind];
+    const starts = [];
+    if (w.fixed !== null) starts.push(w.fixed);
+    else for (let s = 600; s <= (weekend ? 1140 : 1200); s += 30){
+      if (w.after !== null && s < w.after) continue;
+      if (w.before !== null && s + dur > w.before) continue;
+      starts.push(s);
+    }
+    const need = w.count || 1;               // групповая запись: столько лошадей и тренеров
+    let best = null;
+    for (const s of starts){
+      const rk = stem(w.rider);
+      const wanted = cons.prefer.get(rk);
+      const trs = (w.trainer ? trainers.filter(t => t.name === w.trainer) : trainers)
+        .filter(t => trainerOk(t, s, s + dur))
+        .filter(t => !(w.kind === 'exc90' && [...cons.noExc].some(n => sameName(t.name.split(' ')[0], n))))
+        .sort((a, b) => (wanted && sameName(b.name.split(' ')[0], wanted) ? 1 : 0) - (wanted && sameName(a.name.split(' ')[0], wanted) ? 1 : 0)
+                     || load(busyT[a.name]) - load(busyT[b.name]));
+      const only = cons.only.get(rk), avoid = cons.avoid.get(rk) || [];
+      const hrsList = (w.horse ? [w.horse] : horses)
+        .filter(h => !only || only.includes(h.name))
+        .filter(h => !avoid.includes(h.name))
+        .filter(h => !hDur || horseOk(h.name, s + hOff, s + hOff + hDur))
+        .sort((a, b) => load(busyH[a.name]) - load(busyH[b.name]));
+      if (trs.length < need || (hDur && hrsList.length < need)) continue;
+      // лошадь должна подходить и всаднику, и тому тренеру, который её берёт
+      const okFor = (tname, hname) => {
+        const k = stem(tname.split(' ')[0]);
+        const o = cons.onlyT.get(k), a = cons.avoidT.get(k) || [];
+        return (!o || o.includes(hname)) && !a.includes(hname);
+      };
+      const ts = [], hs = [], usedH = new Set();
+      for (const t of trs){
+        if (ts.length >= need) break;
+        if (!hDur){ ts.push(t); continue; }
+        const h = hrsList.find(x => !usedH.has(x.name) && okFor(t.name, x.name));
+        if (!h) continue;
+        ts.push(t); hs.push(h); usedH.add(h.name);
+      }
+      if (ts.length < need || (hDur && hs.length < need)) continue;
+      const pick = { s, ts, hs: hDur ? hs : [hrsList[0] || { name: '' }] };
+      const score = pick.ts.reduce((x, t) => x + load(busyT[t.name]), 0) * 3 +
+                    pick.hs.reduce((x, h) => x + load(busyH[h.name]), 0) + (s === 840 ? 500 : 0);
+      best = Object.assign(pick, { score });
+      break;                                  // самое раннее подходящее время
+    }
+    if (!best){ failed.push(w); return; }
+    best.ts.forEach(t => busyT[t.name].push({ from: best.s, to: best.s + dur }));
+    if (hDur) best.hs.forEach(h => busyH[h.name].push({ from: best.s + hOff, to: best.s + hOff + hDur }));
+    placed.push({ start: best.s, rider: w.rider, count: w.count, pay: w.pay, kind: w.kind,
+                  horse: best.hs.map(h => h.name).join(' '), trainer: best.ts.map(t => t.name).join(' ') });
+  });
+
+  placed.sort((a, b) => a.start - b.start);
+  const out = [];
+  let last = null;
+  placed.forEach(p => {
+    if (p.start !== last){ if (last !== null) out.push(''); out.push(fmt(p.start)); last = p.start; }
+    const type = p.kind === 'walk' ? 'прогулка' : p.kind === 'exc90' ? 'экскурсия' : '';
+    out.push([p.count ? (p.count === 2 ? 'Двое' : 'Трое') : '', p.rider, p.pay.join(' ').replace(' ₽', ''),
+              type, p.horse, p.trainer].filter(Boolean).join(' '));
+  });
+  return { text: out.join('\n'), placed: placed.length, failed, trainers, busyT };
+}
+
+
+/* подбор лошади в готовом расписании: какие клички не создадут конфликта */
+function horseFits(ivs){
+  const blocks = merge(ivs);
+  if (blocks.reduce((s, b) => s + (b.to - b.from), 0) > 240) return false;
+  for (let i = 0; i < blocks.length; i++){
+    const d = blocks[i].to - blocks[i].from;
+    if (d > 120) return false;
+    if (d >= 120 && blocks[i + 1] && blocks[i + 1].from - blocks[i].to < 60) return false;
+  }
+  return LUNCH.some(L => !blocks.some(b => b.from < L + 60 && L < b.to));
+}
+function horseCandidates(rec){
+  if (!rec.hDur) return [];
+  const from = rec.start + rec.hOff, to = from + rec.hDur;
+  const busy = {};
+  HORSES.filter(h => !h.group).forEach(h => busy[h.name] = []);
+  RECS.forEach(r => {
+    if (r === rec || !r.hDur) return;
+    r.horses.forEach(h => { if (busy[h.name]) busy[h.name].push({ from: r.start + r.hOff, to: r.start + r.hOff + r.hDur }); });
+  });
+  return HORSES.filter(h => !h.group).filter(h => {
+    if (busy[h.name].some(iv => iv.from < to && from < iv.to)) return false;
+    return horseFits(busy[h.name].concat([{ from, to }]));
+  });
+}
+function pickHorse(rec, exclude){
+  const list = horseCandidates(rec).filter(h => !exclude || h.name !== exclude);
+  if (!list.length) return null;
+  return list[Math.floor(Math.random() * list.length)];
 }
 
 /* ---------- работа с текстом расписания ---------- */
@@ -969,8 +1361,19 @@ function rawWithHorse(raw, action, idx, newName){
     if (clean && findIn(HORSES, clean.toLowerCase())) spots.push({ i, clean });
   });
   if (action === 'add'){
-    const at = spots.length ? spots[spots.length - 1].i : parts.length - 1;
-    parts.splice(at + 1, 0, ' ', newName);
+    if (spots.length){
+      parts.splice(spots[spots.length - 1].i + 1, 0, ' ', newName);
+    } else {
+      // лошадей в строке нет - ставим кличку перед именем тренера, оно всегда в конце
+      const tk = classify(raw, false);
+      const ts = tailStart(tk, headEnd(tk));
+      const firstTail = tk[ts] ? tk[ts].w.split(' ')[0].toLowerCase() : null;
+      const at = firstTail
+        ? parts.findIndex(x => x.replace(/[^A-Za-zА-Яа-яЁё-]/g, '').toLowerCase() === firstTail)
+        : -1;
+      if (at >= 0) parts.splice(at, 0, newName, ' ');
+      else parts.push(' ', newName);
+    }
   } else if (spots[idx]){
     const s = spots[idx];
     if (action === 'del'){ parts[s.i] = parts[s.i].replace(s.clean, '').replace(/^[,\s]+|[,\s]+$/g, ''); if (!parts[s.i]) parts.splice(s.i, 2); }
@@ -988,10 +1391,29 @@ function maskTime(v, final){
 
 /* ---------- события ---------- */
 let NOTES = [];
+let AUTO = [];                       // кого подставили сами
+
+/* лошадь не указана - подбираем молча и говорим об этом в уведомлении */
+function autoHorses(){
+  AUTO = [];
+  RECS.forEach(r => {
+    if (!r.hDur || r.horses.length) return;
+    const pick = pickHorse(r, null);
+    if (!pick) return;
+    const oldRaw = r.raw;
+    r.horses.push(pick);
+    r.raw = rawWithHorse(r.raw, 'add', -1, pick.name);
+    r.flags = r.flags.filter(f => !/лошад/i.test(f));
+    replaceInText(oldRaw, r.raw);
+    AUTO.push({ who: r.riders.join(', ') || fmt(r.start), horse: pick.name });
+  });
+}
+
 function run(){
   loadDicts();
   const res = parseSchedule(document.getElementById('src').value);
   RECS = res.recs; NOTES = res.notes;
+  autoHorses();
   store.set('sched.src', document.getElementById('src').value);
   render(NOTES);
 }
@@ -1001,12 +1423,44 @@ document.getElementById('clear').addEventListener('click', () => {
   ['ncard','tlcard','reccard','addcard'].forEach(id => document.getElementById(id).hidden = true);
   store.set('sched.src', '');
 });
-document.getElementById('recs').addEventListener('click', e => {
+document.getElementById('recs').addEventListener('click', async e => {
+  const c = e.target.closest('[data-copy]');
+  if (c){
+    const rec = RECS.find(x => x.id === +c.dataset.copy);
+    if (!rec) return;
+    const how = await copyPlain(fmt(rec.start) + '\n- ' + recLine(rec));
+    c.classList.toggle('done', !!how);
+    c.title = how ? 'Скопировано' : 'Браузер не дал скопировать';
+    setTimeout(() => { c.classList.remove('done'); c.title = 'Скопировать'; }, 2000);
+    return;
+  }
   const b = e.target.closest('[data-del]');
   if (!b) return;
-  const r = RECS.find(x => x.id === +b.dataset.del);
+  askDelete(+b.dataset.del);
+});
+
+/* удаление только после подтверждения: на телефоне кнопки легко перепутать */
+let DEL_ID = null;
+const delModal = document.getElementById('delmodal');
+function askDelete(id){
+  const r = RECS.find(x => x.id === id);
+  if (!r) return;
+  DEL_ID = id;
+  document.getElementById('delmodal-l').textContent = fmt(r.start) + ' - ' + recLine(r);
+  delModal.hidden = false;
+  document.getElementById('delok').focus();
+}
+function closeDelete(){ delModal.hidden = true; DEL_ID = null; }
+document.getElementById('delcancel').addEventListener('click', closeDelete);
+delModal.addEventListener('click', e => { if (e.target === delModal) closeDelete(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !delModal.hidden) closeDelete(); });
+document.getElementById('delok').addEventListener('click', () => {
+  const id = DEL_ID;
+  closeDelete();
+  if (id === null) return;
+  const r = RECS.find(x => x.id === id);
   if (r) removeFromText(r.raw);
-  RECS = RECS.filter(x => x.id !== +b.dataset.del);
+  RECS = RECS.filter(x => x.id !== id);
   render(NOTES);
 });
 document.getElementById('recs').addEventListener('change', e => {
@@ -1015,8 +1469,24 @@ document.getElementById('recs').addEventListener('change', e => {
     const r = RECS.find(x => x.id === +hs.dataset.id);
     if (!r) return;
     const i = +hs.dataset.i, name = hs.value;
-    const found = HORSES.find(x => x.name === name);
     const oldRaw = r.raw;
+    if (name === '*'){                       // подобрать другую лошадь
+      const cur = i >= 0 && r.horses[i] ? r.horses[i].name : null;
+      const pick = pickHorse(r, cur);
+      if (!pick){
+        document.getElementById('copymsg').textContent = 'Свободных лошадей на это время нет';
+        setTimeout(() => document.getElementById('copymsg').textContent = '', 3000);
+        render(NOTES); return;
+      }
+      if (i >= 0){ r.horses[i] = pick; r.raw = rawWithHorse(r.raw, 'set', i, pick.name); }
+      else { r.horses.push(pick); r.raw = rawWithHorse(r.raw, 'add', -1, pick.name); }
+      r.flags = r.flags.filter(f => !/лошад/i.test(f));
+      r.info = (r.info || []).filter(f => !/лошадь не выбрана/.test(f));
+      r.info.push('лошадь подобрана автоматически');
+      replaceInText(oldRaw, r.raw);
+      render(NOTES); return;
+    }
+    const found = HORSES.find(x => x.name === name);
     if (i >= 0){
       if (!name){ r.horses.splice(i, 1); r.raw = rawWithHorse(r.raw, 'del', i); }
       else if (found && !r.horses.some((x, j) => j !== i && x.name === name)){
@@ -1033,15 +1503,6 @@ document.getElementById('recs').addEventListener('change', e => {
     render(NOTES);
     return;
   }
-  const s = e.target.closest('select.dur');
-  if (!s) return;
-  const r = RECS.find(x => x.id === +s.dataset.id);
-  if (!r) return;
-  const k = KINDS[s.value];
-  r.kind = s.value; r.dur = k.dur; r.hOff = k.hOff; r.hDur = k.hDur;
-  r.info = (r.info || []).filter(f => !/чистка не считается/.test(f));
-  if (s.value === 'clean') r.info.push('чистка не считается работой лошади');
-  render(NOTES);
 });
 /* ---------- ввод строкой ---------- */
 const freeTa = document.getElementById('free');
@@ -1153,6 +1614,44 @@ async function copyPlain(text){
   return copyViaTextarea(text) ? 'fallback' : false;
 }
 
+/* ---------- переключатель «проверка / заполнение» ---------- */
+
+function setPageMode(fill){
+  document.getElementById('mode-check').classList.toggle('on', !fill);
+  document.getElementById('mode-fill').classList.toggle('on', fill);
+  document.getElementById('row-check').hidden = fill;
+  document.getElementById('row-fill').hidden = !fill;
+  document.getElementById('src-field').hidden = fill;
+  document.getElementById('fill-fields').hidden = !fill;
+  ['reccard','ncard','tlcard','addcard'].forEach(id => { if (fill) document.getElementById(id).hidden = true; });
+  if (!fill) run();
+  store.set('sched.page', fill ? 'fill' : 'check');
+}
+document.getElementById('mode-check').addEventListener('click', () => setPageMode(false));
+document.getElementById('mode-fill').addEventListener('click', () => setPageMode(true));
+document.getElementById('clear2').addEventListener('click', () => {
+  document.getElementById('fill-tr').value = '';
+  document.getElementById('fill-ri').value = '';
+  store.set('sched.fillTr', ''); store.set('sched.fillRi', '');
+  document.getElementById('fill-msg').textContent = '';
+});
+document.getElementById('fill').addEventListener('click', () => {
+  loadDicts();
+  const msg = document.getElementById('fill-msg');
+  const trText = document.getElementById('fill-tr').value;
+  const riText = document.getElementById('fill-ri').value;
+  store.set('sched.fillTr', trText); store.set('sched.fillRi', riText);
+  const res = fillDay(trText, riText);
+  if (res.error){ msg.textContent = res.error; return; }
+  document.getElementById('src').value = res.text;
+  store.set('sched.src', res.text);
+  setPageMode(false);
+  msg.textContent = '';
+  const left = res.failed.length ? ' Не удалось поставить: ' + res.failed.map(w => w.rider || w.raw).join(', ') : '';
+  document.getElementById('fill-msg').textContent = 'Расставлено ' + res.placed + left;
+  setTimeout(() => { document.getElementById('fill-msg').textContent = ''; }, 8000);
+});
+
 document.getElementById('copy').addEventListener('click', async () => {
   const text = exportText(NOTES), msg = document.getElementById('copymsg');
   const how = await copyPlain(text);
@@ -1233,6 +1732,7 @@ document.getElementById('add').addEventListener('click', () => {
 });
 document.getElementById('d-save').addEventListener('click', () => {
   store.set('sched.horses', document.getElementById('d-horses').value);
+  store.set('sched.exempt', document.getElementById('d-exempt').value);
   document.getElementById('d-msg').textContent = 'Сохранено';
   setTimeout(() => document.getElementById('d-msg').textContent = '', 2200);
   run();
@@ -1240,23 +1740,19 @@ document.getElementById('d-save').addEventListener('click', () => {
 document.getElementById('d-reset').addEventListener('click', () => {
   document.getElementById('d-horses').value = DEF_HORSES;
   store.set('sched.horses', DEF_HORSES);
+  document.getElementById('d-exempt').value = 'Анна';
+  store.set('sched.exempt', 'Анна');
   run();
 });
 
 /* ---------- старт ---------- */
-// разовый перенос со старых ключей, чтобы сохранённое не пропало
-['horses','src','mode'].forEach(k => {
-  try {
-    const old = localStorage.getItem('polesye.' + k);
-    if (old !== null && localStorage.getItem('sched.' + k) === null) localStorage.setItem('sched.' + k, old);
-    if (old !== null) localStorage.removeItem('polesye.' + k);
-  } catch(e){}
-});
 document.getElementById('d-horses').value = store.get('sched.horses', DEF_HORSES);
+document.getElementById('d-exempt').value = store.get('sched.exempt', 'Анна');
 document.getElementById('src').value = store.get('sched.src', '');
+document.getElementById('fill-tr').value = store.get('sched.fillTr', '');
+document.getElementById('fill-ri').value = store.get('sched.fillRi', '');
 setMode(store.get('sched.mode', 'free') === 'free');
 run();
+// открываемся всегда на составлении - день начинается с него, а не с проверки
+setPageMode(true);
 </script>
-
-</body>
-</html>
