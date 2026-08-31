@@ -1,3 +1,15 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F4F4F5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="Проверка и составление дневного расписания занятий">
+<style>*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
 <title>Расписание ШВЕ</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
@@ -244,16 +256,16 @@ details.dict[open] summary::after{content:"▴"}
       </div>
       <div class="f" id="src-field" hidden>
         <label for="src">Введите черновик расписания</label>
-        <textarea id="src" spellcheck="false" placeholder="10:00&#10;Марина аб гектор Аня&#10;Олег 2000 кедр Пётр&#10;&#10;11:00&#10;Двое Света 4000 глаша, гранд Аня, Пётр"></textarea>
+        <textarea id="src" spellcheck="false" placeholder="10:00&#10;Алиса аб гектор Ольга&#10;Тимур 2000 кедр Марк&#10;&#10;11:00&#10;Двое Ника 4000 глаша, гранд Ольга, Марк"></textarea>
       </div>
       <div id="fill-fields" style="display:flex;flex-direction:column;gap:14px">
         <div class="f">
           <label for="fill-tr">Кто сегодня работает</label>
-          <textarea id="fill-tr" class="fillbox" spellcheck="false" placeholder="Даша полный день&#10;Кирилл до обеда&#10;Аня 11-16&#10;&#10;Кириллу не давать экскурсии&#10;Ане не давать Кедра"></textarea>
+          <textarea id="fill-tr" class="fillbox" spellcheck="false" placeholder="Ольга полный день&#10;Марк до обеда&#10;Юля 11-16&#10;&#10;Марку не давать экскурсии&#10;Юле не давать Кедра"></textarea>
         </div>
         <div class="f">
           <label for="fill-ri">Кто хочет заниматься</label>
-          <textarea id="fill-ri" class="fillbox" spellcheck="false" placeholder="11:00 Мария аб&#10;Оля аб любое&#10;Иван 2000 после 15&#10;Двое Самир 4000 16:00&#10;&#10;Вале не давать Кедра&#10;Мария лучше с Дашей&#10;Карась сегодня не работает"></textarea>
+          <textarea id="fill-ri" class="fillbox" spellcheck="false" placeholder="11:00 Алиса аб&#10;Вера аб любое&#10;Тимур 2000 после 15&#10;Двое Ника 4000 16:00&#10;&#10;Ладе не давать Кедра&#10;Вера лучше с Ольгой&#10;Карась сегодня не работает"></textarea>
         </div>
       </div>
       <div class="row" id="row-check" hidden>
@@ -279,7 +291,7 @@ details.dict[open] summary::after{content:"▴"}
     </div>
 
     <div class="card-b" id="pane-free" style="display:flex;flex-direction:column;gap:10px">
-      <textarea id="free" rows="3" spellcheck="false" placeholder="19:00&#10;Марина прогулка двое 4000 хью калина аня Пётр" aria-label="Занятие строкой"></textarea>
+      <textarea id="free" rows="3" spellcheck="false" placeholder="19:00&#10;Алиса прогулка двое 4000 хью калина Ольга Марк" aria-label="Занятие строкой"></textarea>
       <div id="free-pre" class="hint"></div>
       <div class="row"><button class="btn" id="add-free">Добавить</button><span class="hint" id="free-msg"></span></div>
     </div>
@@ -296,11 +308,11 @@ details.dict[open] summary::after{content:"▴"}
             <option value="clean">Экскурсия с чисткой, без катания</option>
           </select>
         </div>
-        <div class="f"><label for="a-rider">Всадник</label><input id="a-rider" placeholder="Марина" autocomplete="off"></div>
+        <div class="f"><label for="a-rider">Всадник</label><input id="a-rider" placeholder="Алиса" autocomplete="off"></div>
         <div class="f"><label for="a-pay">Оплата</label><input id="a-pay" placeholder="аб, 2000, серт" autocomplete="off"></div>
-        <div class="f" id="f-guide" hidden><label for="a-guide">Экскурсовод</label><input id="a-guide" placeholder="Аня" autocomplete="off"></div>
+        <div class="f" id="f-guide" hidden><label for="a-guide">Экскурсовод</label><input id="a-guide" placeholder="Ольга" autocomplete="off"></div>
         <div class="f"><label for="a-horse">Лошадь</label><input id="a-horse" placeholder="гек, карась" autocomplete="off"></div>
-        <div class="f"><label for="a-trainer">Тренер</label><input id="a-trainer" placeholder="аня и, Пётр" autocomplete="off"></div>
+        <div class="f"><label for="a-trainer">Тренер</label><input id="a-trainer" placeholder="ольга и, Марк" autocomplete="off"></div>
       </div>
       <div class="row"><button class="btn" id="add">Добавить и проверить</button><span class="hint" id="a-msg"></span></div>
     </div>
@@ -471,7 +483,7 @@ function hrs(min){
 /* ---------- разметка слов ---------- */
 const WORD = /^[а-яёa-z][а-яёa-z-]+$/i;                 // слово, похожее на имя
 const CAPNAME = /^[А-ЯЁA-Z][а-яёa-z-]+$/;               // с большой буквы, а не КАПСОМ
-const LETTER = /^[а-яёa-z]$/i;                          // инициал: «лена и», «лена г»
+const LETTER = /^[а-яёa-z]$/i;                          // инициал: «ольга и», «ольга г»
 
 function nameOf(word, initial){
   const base = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
@@ -641,7 +653,7 @@ function headerTime(t){
   if (m[2] === undefined && h < 6) return null;   // «3» - это не три часа ночи, а что-то другое
   return h * 60 + mi;
 }
-/* время в начале записи: «13:30 осмотр», «19 Марина прогулка» */
+/* время в начале записи: «13:30 осмотр», «19 Алиса прогулка» */
 function inlineTime(t){
   const m = t.match(/^(\d{1,2})(?:[:.](\d{2}))?\s+(.+)$/);
   if (!m) return null;
@@ -1013,20 +1025,24 @@ function recLine(r){
 
 /* расписание обычным текстом: время, всадник с оплатой, лошадь, тренер */
 function exportText(notes){
-  const out = [];
+  // телеграм разбирает вставленный текст как разметку и склеивает соседние строки,
+  // поэтому каждая строка идёт отдельным абзацем - через пустую строку
+  const par = [];
   let last = null;
   RECS.forEach(r => {
-    // строка с неразрывным пробелом: телеграм рисует её как пустую и блоки не слипаются
-    if (r.start !== last){ if (last !== null) out.push('', ' '); out.push(fmt(r.start)); last = r.start; }
-    // дефис в начале строки: телеграм разбирает вставленный текст как разметку
-    // и без него склеивает соседние строки в одну
-    out.push('- ' + recLine(r));
+    if (r.start !== last){
+      // строка с неразрывным пробелом: телеграм рисует её как пустую, отсюда отступ перед часом
+      if (last !== null) par.push(' ');
+      par.push(fmt(r.start));
+      last = r.start;
+    }
+    par.push(recLine(r));
   });
   if (notes && notes.length){
-    out.push('', ' ', 'Примечания:');
-    notes.forEach(n => out.push('- ' + n));
+    par.push(' ', 'Примечания:');
+    notes.forEach(n => par.push(n));
   }
-  return out.join('\n');
+  return par.join('\n\n');
 }
 
 /* ---------- заполнение дня ---------- */
@@ -1068,7 +1084,7 @@ function parseWish(line, trainerSet){
   const words = rest.split(/[\s,()]+/).filter(Boolean);
   for (let i = 0; i < words.length; i++){
     const raw = words[i], lw = raw.toLowerCase();
-    // время может стоять и в конце строки: «Вика аб калина Даша 17:00»
+    // время может стоять и в конце строки: «Ника аб калина Ольга 17:00»
     if (w.fixed === null && /^\d{1,2}[:.]\d{2}$/.test(lw)){
       const t = headerTime(lw);
       if (t !== null){ w.fixed = t; continue; }
@@ -1097,11 +1113,11 @@ function emptyCons(){
            only: new Map(), avoid: new Map(),        // про всадника
            onlyT: new Map(), avoidT: new Map() };    // про тренера
 }
-/* «Оле», «Вике», «Гектора» - те же Оля, Вика и Гектор: сравниваем по основе слова */
+/* «Ладе», «Нике», «Гектора» - те же Лада, Ника и Гектор: сравниваем по основе слова */
 function stem(w){ return (w || '').toLowerCase().replace(/[аеёиоуыэюяьйъ]+$/, ''); }
 function sameName(a, b){
   const x = stem(a), y = stem(b);
-  return !!x && x === y;          // «Вале» = «Валя», но «Мария» не «Марица»
+  return !!x && x === y;          // «Ладе» = «Лада», но «Марта» не «Марица»
 }
 function findHorseLoose(word){
   const w = word.toLowerCase().replace(/[.;!?,]+$/, '');
@@ -1428,7 +1444,7 @@ document.getElementById('recs').addEventListener('click', async e => {
   if (c){
     const rec = RECS.find(x => x.id === +c.dataset.copy);
     if (!rec) return;
-    const how = await copyPlain(fmt(rec.start) + '\n- ' + recLine(rec));
+    const how = await copyPlain(fmt(rec.start) + '\n\n' + recLine(rec));
     c.classList.toggle('done', !!how);
     c.title = how ? 'Скопировано' : 'Браузер не дал скопировать';
     setTimeout(() => { c.classList.remove('done'); c.title = 'Скопировать'; }, 2000);
@@ -1691,7 +1707,7 @@ document.getElementById('add').addEventListener('click', () => {
     if (f){ if (!rec.horses.some(x => x.name === f.name)) rec.horses.push(f); }
     else rec.flags.push('такой клички нет в справочнике: «' + h + '»');
   });
-  // тренеров ниоткуда не сверяем - просто берём имя, как написали; «лена и» тоже
+  // тренеров ниоткуда не сверяем - просто берём имя, как написали; «ольга и» тоже
   trainers.forEach(n => {
     const parts = n.split(/\s+/).filter(Boolean);
     if (!parts.length) return;
@@ -1756,3 +1772,6 @@ run();
 // открываемся всегда на составлении - день начинается с него, а не с проверки
 setPageMode(true);
 </script>
+
+</body>
+</html>
